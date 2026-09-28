@@ -1523,6 +1523,7 @@ class _ConversationPageState extends ConsumerState<_ConversationPage>
                                       Semantics(
                                         container: _selecting,
                                         excludeSemantics: _selecting,
+                                        enabled: _selecting ? true : null,
                                         checked: _selecting
                                             ? _selectedMessages.contains(
                                                 message.id,
@@ -1536,13 +1537,13 @@ class _ConversationPageState extends ConsumerState<_ConversationPage>
                                             : null,
                                         child: Row(
                                           children: [
-                                            if (_selecting)
-                                              Checkbox(
-                                                value: _selectedMessages
-                                                    .contains(message.id),
-                                                onChanged: (_) =>
-                                                    _toggleMessage(message.id),
-                                              ),
+                                            _MessageSelectionControl(
+                                              visible: _selecting,
+                                              selected: _selectedMessages
+                                                  .contains(message.id),
+                                              onChanged: () =>
+                                                  _toggleMessage(message.id),
+                                            ),
                                             Expanded(
                                               child: GestureDetector(
                                                 behavior:
@@ -2268,6 +2269,55 @@ class _PeerAvatarButton extends StatelessWidget {
       ),
     );
   }
+}
+
+/// Keep the message subtree mounted while revealing the selection rail. Native
+/// checkboxes retain their checked-state animation and keyboard interaction.
+class _MessageSelectionControl extends StatelessWidget {
+  const _MessageSelectionControl({
+    required this.visible,
+    required this.selected,
+    required this.onChanged,
+  });
+
+  final bool visible;
+  final bool selected;
+  final VoidCallback onChanged;
+
+  @override
+  Widget build(BuildContext context) => IgnorePointer(
+    ignoring: !visible,
+    child: ExcludeFocus(
+      excluding: !visible,
+      child: ExcludeSemantics(
+        excluding: !visible,
+        child: TweenAnimationBuilder<double>(
+          tween: Tween(end: visible ? 1 : 0),
+          duration: GfMotion.duration(context, GfMotion.layout),
+          curve: GfMotion.layoutCurve,
+          child: SizedBox(
+            width: 44,
+            height: 48,
+            child: Checkbox(
+              shape: const CircleBorder(),
+              value: selected,
+              onChanged: (_) => onChanged(),
+            ),
+          ),
+          builder: (context, progress, child) => Offstage(
+            offstage: progress == 0,
+            child: ClipRect(
+              child: Align(
+                alignment: AlignmentDirectional.centerEnd,
+                widthFactor: progress,
+                child: Opacity(opacity: progress, child: child),
+              ),
+            ),
+          ),
+        ),
+      ),
+    ),
+  );
 }
 
 class _MessageRow extends ConsumerWidget {

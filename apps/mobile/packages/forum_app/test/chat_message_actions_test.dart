@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:io';
+import 'dart:ui' show Tristate;
 
 import 'package:core/core.dart';
 import 'package:dio/dio.dart';
@@ -371,6 +372,7 @@ void main() {
   testWidgets('multi-select cancels with system back and preserves the draft', (
     tester,
   ) async {
+    final semantics = tester.ensureSemantics();
     await pumpActions(
       tester,
       messages: [makeChatMessage(1), makeChatMessage(2)],
@@ -384,7 +386,19 @@ void main() {
     await tester.tap(find.text('Select messages'));
     await tester.pumpAndSettle();
     expect(find.byType(Checkbox), findsNWidgets(2));
+    expect(
+      tester
+          .widgetList<Checkbox>(find.byType(Checkbox))
+          .every((checkbox) => checkbox.shape is CircleBorder),
+      isTrue,
+    );
     expect(find.byType(GfChatInput), findsNothing);
+    final unselectedRow = find.bySemanticsLabel('@bob: 消息 2');
+    expect(
+      tester.getSemantics(unselectedRow).flagsCollection.isEnabled,
+      Tristate.isTrue,
+    );
+    semantics.dispose();
     await tester.tap(find.text('消息 2'));
     await tester.pump();
     expect(
@@ -405,13 +419,20 @@ void main() {
     'recipient selection fits narrow screens with a search keyboard and large text',
     (tester) async {
       await pumpActions(tester);
+      await openActions(tester, find.text('消息 1'));
+      await tester.tap(find.text('Forward'));
+      await tester.pumpAndSettle();
+      expect(find.byType(CheckboxListTile), findsWidgets);
+      expect(
+        tester
+            .widgetList<CheckboxListTile>(find.byType(CheckboxListTile))
+            .every((tile) => tile.checkboxShape is CircleBorder),
+        isTrue,
+      );
       await tester.binding.setSurfaceSize(const Size(320, 560));
       tester.platformDispatcher.textScaleFactorTestValue = 2;
       addTearDown(tester.platformDispatcher.clearTextScaleFactorTestValue);
       addTearDown(tester.view.resetViewInsets);
-      await openActions(tester, find.text('消息 1'));
-      await tester.tap(find.text('Forward'));
-      await tester.pumpAndSettle();
       tester.view.viewInsets = const FakeViewPadding(bottom: 240);
       await tester.pumpAndSettle();
       expect(tester.takeException(), isNull);
@@ -420,6 +441,40 @@ void main() {
       await dispose(tester);
     },
   );
+
+  for (final reducedMotion in [false, true]) {
+    testWidgets(
+      'selection rail can exit during reveal (reduced motion: $reducedMotion)',
+      (tester) async {
+        tester.platformDispatcher.accessibilityFeaturesTestValue =
+            FakeAccessibilityFeatures(disableAnimations: reducedMotion);
+        addTearDown(
+          tester.platformDispatcher.clearAccessibilityFeaturesTestValue,
+        );
+        await pumpActions(tester);
+        final message = find.text('消息 1');
+        final originalLeft = tester.getTopLeft(message).dx;
+        await openActions(tester, message);
+        await tester.tap(find.text('Select messages'));
+        await tester.pump();
+        await tester.pump(const Duration(milliseconds: 60));
+        final selectingLeft = tester.getTopLeft(message).dx;
+        if (reducedMotion) {
+          expect(selectingLeft, closeTo(originalLeft + 44, 0.01));
+        } else {
+          expect(selectingLeft, greaterThan(originalLeft));
+          expect(selectingLeft, lessThan(originalLeft + 44));
+        }
+        await tester.binding.handlePopRoute();
+        await tester.pumpAndSettle();
+        expect(find.byType(Checkbox), findsNothing);
+        expect(tester.getTopLeft(message).dx, closeTo(originalLeft, 0.01));
+        expect(find.byType(GfChatInput), findsOneWidget);
+        expect(tester.takeException(), isNull);
+        await dispose(tester);
+      },
+    );
+  }
 
   testWidgets('copying a message writes the whole content to the clipboard', (
     tester,

@@ -260,6 +260,7 @@ class _ForwardMessagesPageState extends ConsumerState<ForwardMessagesPage> {
                         : Column(
                             children: users.map((user) {
                               return CheckboxListTile(
+                                checkboxShape: const CircleBorder(),
                                 secondary: GfAvatar(
                                   src: resolveApiAssetUrl(user.avatarUrl),
                                   size: 40,
