@@ -983,6 +983,8 @@ class _LoginPageState extends ConsumerState<LoginPage>
     GfColors colors, {
     required bool compactHeader,
   }) {
+    final bool registrationHeader = _mode == _AuthMode.register;
+    final bool showBrand = !compactHeader;
     final bool showCaptcha =
         _authController.phase == LoginPhase.needsCaptcha ||
         (_mode == _AuthMode.login && _loginCaptchaRevealed);
@@ -1003,22 +1005,27 @@ class _LoginPageState extends ConsumerState<LoginPage>
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: <Widget>[
-          // A short form area drops the decorative brand lockup and subtitle
-          // so the form and every sign-in method stay visible without scrolling.
-          if (!compactHeader) ...[
+          // Keep the fields reachable in compact form areas by hiding the
+          // decorative brand lockup.
+          if (showBrand) ...[
             Align(
-              alignment: Alignment.centerLeft,
-              child: Image.asset(
-                Theme.of(context).brightness == Brightness.dark
-                    ? 'assets/images/brand-default-dark.webp'
-                    : 'assets/images/brand-default.webp',
-                width: 176,
-                height: 32,
-                fit: BoxFit.contain,
-                semanticLabel: 'YourTJ',
+              alignment: Alignment.center,
+              child: Transform.translate(
+                // The wordmark asset's visible alpha bounds sit about 2 px
+                // right of its canvas center; correct that optical offset.
+                offset: const Offset(-2, 0),
+                child: Image.asset(
+                  Theme.of(context).brightness == Brightness.dark
+                      ? 'assets/images/brand-default-dark.webp'
+                      : 'assets/images/brand-default.webp',
+                  width: 192,
+                  height: 44,
+                  fit: BoxFit.contain,
+                  semanticLabel: 'YourTJ',
+                ),
               ),
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: 16),
           ],
           Text(
             _title(l10n),
@@ -1027,7 +1034,7 @@ class _LoginPageState extends ConsumerState<LoginPage>
             ).display.copyWith(fontSize: 27, height: 1.15),
           ),
           if (!compactHeader) ...[
-            const SizedBox(height: 4),
+            SizedBox(height: registrationHeader ? 8 : 4),
             Text(
               _mode == _AuthMode.login && _returnTo != null && _returnTo != '/'
                   ? l10n.authContinueAfterLogin
@@ -1037,7 +1044,7 @@ class _LoginPageState extends ConsumerState<LoginPage>
               ),
             ),
           ],
-          const SizedBox(height: 12),
+          SizedBox(height: registrationHeader ? 16 : 12),
           if (_mode != _AuthMode.forgotPassword) ...<Widget>[
             GfSegmented<_AuthMode>(
               segments: <(String, _AuthMode)>[
