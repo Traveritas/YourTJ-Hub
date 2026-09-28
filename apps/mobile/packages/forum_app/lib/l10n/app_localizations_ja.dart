@@ -2827,6 +2827,18 @@ class AppLocalizationsJa extends AppLocalizations {
   String get userBlocksEmpty => 'ブロックしたユーザーはいません';
 
   @override
+  String get messageCopied => 'コピーしました';
+
+  @override
+  String get messageReply => '返信';
+
+  @override
+  String get messageReplyCancel => '返信をキャンセル';
+
+  @override
+  String get messageReplySelf => '自分';
+
+  @override
   String get messageReport => 'メッセージを報告';
 
   @override

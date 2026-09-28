@@ -5352,6 +5352,30 @@ abstract class AppLocalizations {
   /// **'No blocked users'**
   String get userBlocksEmpty;
 
+  /// No description provided for @messageCopied.
+  ///
+  /// In en, this message translates to:
+  /// **'Copied'**
+  String get messageCopied;
+
+  /// No description provided for @messageReply.
+  ///
+  /// In en, this message translates to:
+  /// **'Reply'**
+  String get messageReply;
+
+  /// No description provided for @messageReplyCancel.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel reply'**
+  String get messageReplyCancel;
+
+  /// No description provided for @messageReplySelf.
+  ///
+  /// In en, this message translates to:
+  /// **'You'**
+  String get messageReplySelf;
+
   /// No description provided for @messageReport.
   ///
   /// In en, this message translates to:

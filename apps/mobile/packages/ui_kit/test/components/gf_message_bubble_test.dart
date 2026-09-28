@@ -1,4 +1,6 @@
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/semantics.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:ui_kit/ui_kit.dart';
 
@@ -99,6 +101,67 @@ void main() {
       );
     }
   }
+
+  for (final selectable in [false, true]) {
+    testWidgets('long-press reports once (selectable: $selectable)', (
+      tester,
+    ) async {
+      var presses = 0;
+      await tester.pumpWidget(
+        gfApp(
+          GfMessageBubble(
+            text: '可长按的消息',
+            mine: false,
+            selectable: selectable,
+            onLongPress: () => presses++,
+          ),
+        ),
+      );
+      final handle = tester.ensureSemantics();
+      await tester.longPress(find.text('可长按的消息'));
+      await tester.pumpAndSettle();
+      expect(presses, 1);
+      expect(
+        tester
+            .getSemantics(find.text('可长按的消息'))
+            .getSemanticsData()
+            .hasAction(SemanticsAction.longPress),
+        isTrue,
+        reason: 'screen readers announce the action menu affordance',
+      );
+      expect(
+        find.byType(SelectionArea),
+        selectable ? findsOneWidget : findsNothing,
+      );
+      await tester.tap(find.text('可长按的消息'));
+      await tester.pumpAndSettle();
+      expect(presses, 1, reason: 'a plain tap must not open the menu');
+      expect(tester.takeException(), isNull);
+      handle.dispose();
+    });
+  }
+
+  testWidgets('a selectable bubble still drags text selection', (tester) async {
+    await tester.pumpWidget(
+      gfApp(
+        GfMessageBubble(
+          text: '可选择的消息内容',
+          mine: false,
+          selectable: true,
+          onLongPress: () {},
+        ),
+      ),
+    );
+    final gesture = await tester.startGesture(
+      tester.getCenter(find.text('可选择的消息内容')),
+      kind: PointerDeviceKind.mouse,
+    );
+    await gesture.moveBy(const Offset(60, 0));
+    await gesture.up();
+    await tester.pumpAndSettle();
+    expect(find.byType(SelectionArea), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
 
   for (final mine in [false, true]) {
     testWidgets('unframed message keeps maximum width (mine: $mine)', (

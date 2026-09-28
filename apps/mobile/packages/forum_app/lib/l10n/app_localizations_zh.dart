@@ -2800,6 +2800,18 @@ class AppLocalizationsZh extends AppLocalizations {
   String get userBlocksEmpty => '尚未屏蔽任何用户';
 
   @override
+  String get messageCopied => '已复制';
+
+  @override
+  String get messageReply => '回复';
+
+  @override
+  String get messageReplyCancel => '取消回复';
+
+  @override
+  String get messageReplySelf => '我';
+
+  @override
   String get messageReport => '举报私信';
 
   @override

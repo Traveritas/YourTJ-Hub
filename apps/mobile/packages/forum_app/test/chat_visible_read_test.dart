@@ -101,6 +101,7 @@ pumpChat(
   List<ChatMessagePayload>? older,
   StickerLibrary? stickers,
   StickerCollection? stickerCollection,
+  List<Override> overrides = const <Override>[],
   int? targetUserId = 2,
   VisibleChatRepository Function(GfApiClient client)? repository,
 }) async {
@@ -121,7 +122,7 @@ pumpChat(
             messages ??
             List.generate(40, (index) => makeChatMessage(index + 1)),
       );
-  repo.olderMessages = older ?? [];
+  if (repository == null) repo.olderMessages = older ?? [];
   final container = ProviderContainer(
     overrides: [
       tokenStorageProvider.overrideWithValue(storage),
@@ -135,6 +136,7 @@ pumpChat(
       if (stickers != null) stickerLibraryProvider.overrideWithValue(stickers),
       if (stickerCollection != null)
         stickerCollectionProvider.overrideWith((ref) => stickerCollection),
+      ...overrides,
     ],
   );
   addTearDown(container.dispose);

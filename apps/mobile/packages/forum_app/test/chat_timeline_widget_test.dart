@@ -21,7 +21,7 @@ import 'pages_behavior_test.dart'
 
 /// 撑高气泡的正文：小屏下列表可滚动，上翻分页路径才会被触发，
 /// 且首屏消息仍在懒加载视口内。
-String _body(int id) => '消息 $id${'\n正文' * 3}';
+String _body(int id) => '消息 $id${'\n正文' * 6}';
 
 ChatMessagePayload _message(
   int id,
@@ -233,7 +233,14 @@ void main() {
       olderGate: gate,
     );
 
-    // 初次“滚到底部”已经触发分页，但响应被挂起，尚未真正请求。
+    // 主动上翻触发分页，不依赖气泡附属操作控件撑高初始列表。
+    final ScrollController initialScroll = tester
+        .widget<ListView>(find.byType(ListView).last)
+        .controller!;
+    expect(initialScroll.position.maxScrollExtent, greaterThan(0));
+    initialScroll.jumpTo(0);
+    await tester.pump();
+    // 响应被挂起，尚未真正请求。
     expect(repo.beforeCalls, 0);
     final double anchoredDy = tester.getTopLeft(find.text(_body(101))).dy;
 

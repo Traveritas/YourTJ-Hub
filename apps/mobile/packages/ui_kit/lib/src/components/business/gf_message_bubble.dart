@@ -18,6 +18,7 @@ class GfMessageBubble extends StatelessWidget {
     this.selectable = false,
     this.showBubble = true,
     this.copyMessageLabel = 'Copy message',
+    this.onLongPress,
   });
 
   /// Optional key on the message body, excluding alignment and timestamp.
@@ -44,6 +45,11 @@ class GfMessageBubble extends StatelessWidget {
   final bool showBubble;
   final String copyMessageLabel;
 
+  /// Opens the message action menu. The gesture layer sits inside
+  /// [SelectionArea] so a long press wins over selection; dragging still
+  /// scrolls or selects text.
+  final VoidCallback? onLongPress;
+
   @override
   Widget build(BuildContext context) {
     final GfColors colors = GfTheme.colorsOf(context);
@@ -53,7 +59,7 @@ class GfMessageBubble extends StatelessWidget {
       height: 1.4,
       color: mine && showBubble ? colors.primaryContent : colors.baseContent,
     );
-    Widget body = DefaultTextStyle(
+    final Widget body = DefaultTextStyle(
       style: contentStyle,
       child:
           content ??
@@ -61,33 +67,12 @@ class GfMessageBubble extends StatelessWidget {
               ? Text(text)
               : Text.rich(TextSpan(children: <InlineSpan>[contentSpan!]))),
     );
-    if (selectable) {
-      body = SelectionArea(
-        contextMenuBuilder: (context, selection) =>
-            AdaptiveTextSelectionToolbar.buttonItems(
-              anchors: selection.contextMenuAnchors,
-              buttonItems: [
-                ...selection.contextMenuButtonItems,
-                ContextMenuButtonItem(
-                  label: copyMessageLabel,
-                  onPressed: () {
-                    // Whole-message copy preserves sticker tokens that native
-                    // partial text selection cannot represent as images.
-                    Clipboard.setData(ClipboardData(text: text));
-                    selection.hideToolbar();
-                  },
-                ),
-              ],
-            ),
-        child: body,
-      );
-    }
     return LayoutBuilder(
       builder: (context, constraints) {
         final availableWidth = constraints.hasBoundedWidth
             ? constraints.maxWidth
             : MediaQuery.sizeOf(context).width;
-        final Widget bubble = Container(
+        Widget bubble = Container(
           key: bubbleKey,
           constraints: BoxConstraints(
             maxWidth: availableWidth * maxWidthFactor,
@@ -103,6 +88,35 @@ class GfMessageBubble extends StatelessWidget {
               : null,
           child: body,
         );
+        if (onLongPress != null) {
+          bubble = GestureDetector(
+            behavior: HitTestBehavior.opaque,
+            onLongPress: onLongPress,
+            child: bubble,
+          );
+        }
+        if (selectable) {
+          bubble = SelectionArea(
+            contextMenuBuilder: (context, selection) =>
+                AdaptiveTextSelectionToolbar.buttonItems(
+                  anchors: selection.contextMenuAnchors,
+                  buttonItems: [
+                    ...selection.contextMenuButtonItems,
+                    ContextMenuButtonItem(
+                      label: copyMessageLabel,
+                      onPressed: () {
+                        // Whole-message copy preserves sticker tokens that
+                        // native partial text selection cannot represent as
+                        // images.
+                        Clipboard.setData(ClipboardData(text: text));
+                        selection.hideToolbar();
+                      },
+                    ),
+                  ],
+                ),
+            child: bubble,
+          );
+        }
 
         final Widget withTime = time == null
             ? bubble

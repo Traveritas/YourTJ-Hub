@@ -318,13 +318,26 @@ ordered after the active route in the accessibility tree so iOS does not hide it
   retention and ambiguous-retry limitation remain.
 - `Current`: chat text, including sending, acknowledged and failed outbox bubbles, supports native
   selection/copy and underlined HTTP(S) links using the shared
-  internal-routing/external-confirmation policy. Messages containing only resolved stickers and
+  internal-routing/external-confirmation policy. Holding a message bubble opens the action menu
+  (reply, whole-message copy, saving resolved stickers to the collection, and report for received
+  messages) without interrupting drag-scroll or drag text selection; a plain tap does not open it.
+  Messages containing only resolved stickers and
   whitespace render without a colored bubble or bubble padding, for both incoming messages and
-  outgoing/history/outbox messages. Time, delivery state and long-press collection remain available.
+  outgoing/history/outbox messages. History stickers open the same message menu, which stays
+  reachable while a sticker image is loading or unavailable. Outbox stickers retain their own
+  collection and failed-image retry actions until the message appears in history.
+  Time and delivery state remain available.
   Mixed text and unknown or disabled sticker tokens retain the normal bubble. Inline stickers
   remain supported; chat text is not
   interpreted as Markdown or HTML. The selection menu also offers whole-message copy, preserving
-  sticker tokens that partial native text selection omits. The emoji accessory replaces the current
+  sticker tokens that partial native text selection omits; the action menu offers the same copy.
+  Choosing reply shows a dismissible sender/excerpt preview above the composer until the message is
+  sent, the preview is cancelled, or the session changes. The quote names its author
+  (`@username`, or a localized self label when the page payload carries no viewer username); a
+  failed send re-attaches the quote only while its draft and reply selection are unchanged, so
+  sending again retries the same entry instead of posting an unquoted duplicate. A successful
+  bubble retry clears that draft's quote without discarding a newer reply selection.
+  The emoji accessory replaces the current
   selection and leaves the caret after insertion. Replacing the draft with text that has no valid
   selection resets insertion to the end. Opening it dismisses the software keyboard and keeps focus
   inside the composer for hardware shortcuts; the keyboard control restores
@@ -1058,7 +1071,8 @@ servers that omit interaction fields retain read-only content previews.
 - `Current`: adding a personal sticker offers the system photo library or file picker. Cancelling
   either picker leaves the library unchanged. Selected photos use the same authenticated upload and
   retry flow as files, without applying the post-photo resize/compression settings to stickers.
-  The personal library supports image upload, collecting a shared sticker by long press,
+  The personal library supports image upload, collecting a shared sticker by long press (in a chat
+  message, the bubble's action menu offers the same collection for its resolved stickers),
   private display names, reordering and removal. It holds up to 200 stickers; images are limited to
   4 MiB and an account can create up to 1000 retained personal assets. Uploads use the authenticated
   file service. Failed requests retain the current input and expose retry. Concurrent collection
@@ -1126,8 +1140,13 @@ storage lists the caller's blocks. Server enforcement stops new private messages
 notifications in both directions. Public content, message history and already delivered notifications
 remain available. Pending activation does not prevent managing a block.
 
-`Current`: received messages expose a report action with explicit disclosure of the selected
-message to administrators. Topic/post and message forms submit a fixed reason enum plus a separate
+`Current`: the message action menu exposes a report action for received messages, with explicit
+disclosure of the selected message to administrators; the report entry is no longer rendered under
+every received bubble. One message can be replied to from the same menu. The send contract has no
+reply field, so the reply is composed client-side as a plain-text `> @sender: excerpt` quote line
+above the reply body; the excerpt is bounded to 120 characters and sticker tokens expand to their
+readable preview label. Conversation previews drop that leading quote before the 255-character
+preview bound, so the inbox shows the reply body rather than the quoted excerpt. Topic/post and message forms submit a fixed reason enum plus a separate
 explanation. Only administrators can review or handle private-message evidence in the embedded
 moderation workspace; global/category moderators cannot obtain it. The
 [privacy boundary decision](../decisions/0040-user-blocks-and-private-message-reports.md) defines
