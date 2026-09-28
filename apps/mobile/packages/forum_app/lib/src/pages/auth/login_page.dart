@@ -984,8 +984,7 @@ class _LoginPageState extends ConsumerState<LoginPage>
     required bool compactHeader,
   }) {
     final bool registrationHeader = _mode == _AuthMode.register;
-    final bool keyboardVisible = MediaQuery.viewInsetsOf(context).bottom > 0;
-    final bool showBrand = !compactHeader || !keyboardVisible;
+    final bool showBrand = !compactHeader;
     final bool showCaptcha =
         _authController.phase == LoginPhase.needsCaptcha ||
         (_mode == _AuthMode.login && _loginCaptchaRevealed);
@@ -1006,8 +1005,8 @@ class _LoginPageState extends ConsumerState<LoginPage>
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: <Widget>[
-          // In compact form areas, keep the fields reachable while the keyboard
-          // is open by hiding the decorative brand lockup.
+          // Keep the fields reachable in compact form areas by hiding the
+          // decorative brand lockup.
           if (showBrand) ...[
             Align(
               alignment: Alignment.center,

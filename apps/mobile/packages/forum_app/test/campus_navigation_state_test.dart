@@ -602,19 +602,20 @@ void main() {
             matching: find.byType(ListView),
           )
           .first;
+      final beforeInputOffset = _list(tester).offset;
       if (input == 'drag') {
-        await tester.drag(list, const Offset(0, -100));
+        await tester.drag(list, const Offset(0, 100));
       } else {
         await tester.sendEventToBinding(
           PointerScrollEvent(
             position: tester.getCenter(list),
-            scrollDelta: const Offset(0, 100),
+            scrollDelta: const Offset(0, -100),
           ),
         );
       }
       await tester.pump(const Duration(seconds: 1));
       final selectedOffset = _list(tester).offset;
-      expect(selectedOffset, lessThan(300));
+      expect(selectedOffset, lessThan(beforeInputOffset));
       repo.grades!.complete(campusFixture('grades'));
       await tester.pumpAndSettle();
       expect(_list(tester).offset, closeTo(selectedOffset, 1));

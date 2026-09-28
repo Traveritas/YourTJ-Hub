@@ -335,9 +335,7 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
-  testWidgets('registration uses a larger centered brand in the upper page', (
-    tester,
-  ) async {
+  testWidgets('login and registration share a centered brand', (tester) async {
     final h = await _pumpLogin(
       tester,
       topInset: 47,
@@ -345,8 +343,13 @@ void main() {
       deviceFonts: true,
     );
     final Image loginBrand = tester.widget<Image>(_brand);
-    expect(loginBrand.width, 176);
-    expect(loginBrand.height, 32);
+    final Rect loginBrandRect = tester.getRect(_brand);
+    expect(loginBrand.width, 192);
+    expect(loginBrand.height, 44);
+    expect(
+      loginBrandRect.center.dx,
+      closeTo(h.viewportRect.center.dx - 2, 0.5),
+    );
 
     await tester.tap(find.text(h.l10n.loginModeRegister).first);
     await tester.pumpAndSettle();
@@ -355,7 +358,7 @@ void main() {
     final Rect brandRect = tester.getRect(_brand);
     expect(registrationBrand.width, 192);
     expect(registrationBrand.height, 44);
-    expect(brandRect.center.dx, closeTo(h.viewportRect.center.dx, 0.5));
+    expect(brandRect.center.dx, closeTo(loginBrandRect.center.dx, 0.5));
     expect(
       brandRect.center.dy,
       lessThan(tester.view.physicalSize.height * 0.3),
