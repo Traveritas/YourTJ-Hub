@@ -1874,6 +1874,10 @@ export default {
     },
   },
   messages: {
+    forwardHistory: '聊天记录',
+    forwardCount: '{count} 条消息',
+    forwardClose: '关闭聊天记录',
+
     title: '私信',
     newMessage: '新私信',
     searchConversations: '搜索会话',

@@ -118,10 +118,13 @@ void expectCircularAvatar(
     Clip.antiAlias,
     reason: 'the image must be clipped to the circular decoration',
   );
-  final BoxDecoration? foregroundDecoration =
-      container.foregroundDecoration as BoxDecoration?;
   expect(
-    decoration.border ?? foregroundDecoration?.border,
+    decoration.border,
+    isNull,
+    reason: 'ring must not inset the square image',
+  );
+  expect(
+    (container.foregroundDecoration as BoxDecoration?)?.border,
     ring ? isNotNull : isNull,
   );
   expect(tester.getSize(avatarFinder), Size(size, size));

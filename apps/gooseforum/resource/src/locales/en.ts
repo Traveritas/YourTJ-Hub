@@ -1872,6 +1872,10 @@ export default {
     },
   },
   messages: {
+    forwardHistory: 'Chat history',
+    forwardCount: '{count} messages',
+    forwardClose: 'Close chat history',
+
     title: 'Messages',
     newMessage: 'New message',
     searchConversations: 'Search conversations',

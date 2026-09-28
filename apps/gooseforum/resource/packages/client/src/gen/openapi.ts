@@ -2125,6 +2125,44 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/forum/chat/forward": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Forward selected private messages to one recipient atomically
+         * @description Requires uncached membership of convId and ownership of every selected ID by
+         *     that conversation. IDs are sorted chronologically; duplicates, missing IDs,
+         *     unknown types, self-targets and blocked interactions fail without any delivery.
+         *     Individual mode copies up to 10 original messages; merged mode stores one type-4
+         *     immutable snapshot. Nested snapshots remain independently readable history
+         *     cards, bounded to 4 bundle levels, 50 total entries (including cards) and
+         *     64 KiB per snapshot. Current sensitive-word checks include all nested text.
+         *     Recipients cannot use snapshots to access source conversation IDs/history.
+         *     Get-messages supplies a readable content fallback and an optional forwarded
+         *     object for type 4, so older clients can still read the copy.
+         *     The same actor, clientForwardId, recipient, source conversation, sorted IDs and
+         *     mode identify a retry; it returns the original stored IDs without new unread
+         *     increments, even after a display-name change. Different recipients are separate
+         *     transactions; clients explicitly select and acknowledge each recipient.
+         *     Individual mode consumes one message.send attempt per selected message;
+         *     merged mode consumes one. The request body is limited to 8192 bytes.
+         *     Business failures use HTTP 200 chat.send.failed; field validation uses HTTP 200
+         *     common.request.invalidParams. Malformed JSON/body limits
+         *     use the strict request wrapper. No private source details appear in errors.
+         */
+        post: operations["forwardChatMessages"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/forum/chat/messages": {
         parameters: {
             query?: never;
@@ -8254,7 +8292,7 @@ export interface components {
             /** @description Full message content is preserved; only the conversation-list preview is bounded to 255 Unicode characters. Sensitive-word hits fail with `chat.sensitive.blocked` (HTTP 200, params `word` plus all matches in `words`). Other send failures use `chat.send.failed` without raw storage-error details. */
             content: string;
             /**
-             * @description 1 text, 2 image, 3 voice. Effectively required — omitting it binds 0 and fails validation with `common.request.invalidParams` (HTTP 200).
+             * @description 1 text, 2 image, 3 voice. Merged chat history (type 4) is created only by `/api/forum/chat/forward`. Effectively required — omitting it binds 0 and fails validation with `common.request.invalidParams` (HTTP 200).
              * @enum {integer}
              */
             msgType: 1 | 2 | 3;
@@ -8296,10 +8334,10 @@ export interface components {
             senderId: number;
             content: string;
             /**
-             * @description 1 text, 2 image, 3 voice.
+             * @description 1 text, 2 image, 3 voice, 4 merged chat history. Content always includes a readable plain-text fallback.
              * @enum {integer}
              */
-            msgType: 1 | 2 | 3;
+            msgType: 1 | 2 | 3 | 4;
             /**
              * @description Numeric read flag (0 unread, 1 read), not a boolean.
              * @enum {integer}
@@ -8309,6 +8347,7 @@ export interface components {
             createdAt: string;
             /** @description True when the caller sent this message. */
             isSelf: boolean;
+            forwarded?: components["schemas"]["ChatForwardBundle"];
         };
         ChatMessagesResult: {
             /** @description Ascending by message id within the page. */
@@ -12195,6 +12234,45 @@ export interface components {
         DisplayBadgesRequest: {
             badgeCodes: string[];
         };
+        ForwardChatMessagesRequest: {
+            /** Format: uint64 */
+            convId: number;
+            /** Format: uint64 */
+            peerId: number;
+            /** @description At most 10 source messages in individual mode; at most 50 in merged mode. */
+            messageIds: number[];
+            /** @enum {string} */
+            mode: "individual" | "merged";
+            clientForwardId: string;
+        };
+        ForwardChatMessagesResult: {
+            /** Format: uint64 */
+            convId: number;
+            messageIds: number[];
+        };
+        ForwardChatMessagesSuccess: components["schemas"]["ApiSuccess"] & {
+            result: components["schemas"]["ForwardChatMessagesResult"];
+        };
+        ForwardChatMessagesResponse: components["schemas"]["ForwardChatMessagesSuccess"] | components["schemas"]["ApiFailure"];
+        /** @description Immutable copy tree; at most 4 bundle levels, 50 total entries including history cards, and 64 KiB of encoded content. Nested cards retain their own sender metadata and copied children. */
+        ChatForwardBundle: {
+            /** @enum {integer} */
+            version: 1;
+            messages: components["schemas"]["ChatForwardEntry"][];
+        };
+        ChatForwardEntry: {
+            /** @description Display name copied at forwarding time; no private notes. */
+            senderName: string;
+            /** @description Optional public avatar URL copied at forwarding time. Older snapshots omit it; clients use a circular placeholder. The URL does not grant access to the source conversation. */
+            avatarUrl?: string;
+            /** @description Readable fallback, including nested history text for older clients. */
+            content: string;
+            /** Format: date-time */
+            createdAt: string;
+            /** @enum {integer} */
+            msgType: 1 | 2 | 3 | 4;
+            forwarded?: components["schemas"]["ChatForwardBundle"];
+        } & unknown;
         ChatVisibleReadSuccess: components["schemas"]["ApiSuccess"] & {
             result: components["schemas"]["ChatVisibleReadResult"];
         };
@@ -16349,6 +16427,67 @@ export interface operations {
                 };
             };
             /** @description Message-send rate limit (action `message.send`) exceeded. */
+            429: {
+                headers: {
+                    "Retry-After": number;
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RateLimitedFailure"];
+                };
+            };
+        };
+    };
+    forwardChatMessages: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ForwardChatMessagesRequest"];
+            };
+        };
+        responses: {
+            /** @description Atomic recipient delivery, replay, or generic business failure. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ForwardChatMessagesResponse"];
+                };
+            };
+            /** @description Invalid JSON or oversized body. */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiFailure"];
+                };
+            };
+            /** @description Authentication required. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiFailure"];
+                };
+            };
+            /** @description Account cannot write or cookie request fails CSRF validation. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiFailure"];
+                };
+            };
+            /** @description Shared message.send quota exceeded. */
             429: {
                 headers: {
                     "Retry-After": number;

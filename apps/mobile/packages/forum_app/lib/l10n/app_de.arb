@@ -1024,5 +1024,66 @@
   "reportAbuse": "Beleidigung oder Belästigung",
   "reportIllegal": "Rechtswidrige Inhalte",
   "reportIrrelevant": "Themenfremde Inhalte",
-  "reportOther": "Sonstiges"
+  "reportOther": "Sonstiges",
+  "messageActions": "Nachrichtenaktionen",
+  "messageForwardIndividualLimit": "Mehr als 10 Nachrichten werden als Verlauf weitergeleitet.",
+  "messageForward": "Weiterleiten",
+  "messageSelect": "Nachrichten auswählen",
+  "messagesSelected": "{count} ausgewählt",
+  "@messagesSelected": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "messageForwardTitle": "Nachrichten weiterleiten",
+  "messageForwardIndividual": "Einzeln",
+  "messageForwardMerged": "Als Chatverlauf",
+  "messageForwardExplanation": "Ausgewählte Nachrichten werden kopiert. Zusammengefasste Verläufe enthalten ursprüngliche Absendernamen und Zeiten.",
+  "messageForwardTargets": "An {count} Personen weiterleiten",
+  "@messageForwardTargets": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "messageForwardConfirm": "Weiterleitung bestätigen",
+  "messageForwardSuccess": "Gesendet",
+  "messageForwardFailed": "Nicht gesendet",
+  "messageForwardPending": "Ausstehend",
+  "messageForwardSending": "Wird gesendet",
+  "messageForwardRetry": "Offene Weiterleitungen wiederholen",
+  "messageForwardResume": "Weiterleitung fortsetzen",
+  "messageForwardLimit": "Bis zu {count} Nachrichten auswählen",
+  "@messageForwardLimit": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "messageForwardRecipientLimit": "Bis zu {count} Empfänger auswählen",
+  "@messageForwardRecipientLimit": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "messageForwardHistory": "Chatverlauf",
+  "messageForwardCount": "{count} Nachrichten",
+  "@messageForwardCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "messageForwardEmptyRecipients": "Keine Gespräche oder Kontakte verfügbar",
+  "messageForwardCancelRemaining": "Übrige Weiterleitungen verwerfen",
+  "messageForwardAbandonNotice": "Gesendete Nachrichten bleiben bestehen. Unbestätigte Nachrichten können bereits zugestellt sein; eine neue Weiterleitung kann Duplikate erzeugen.",
+  "messageForwardSearch": "Gespräche oder Kontakte suchen",
+  "messageForwardChooseTargets": "Empfänger auswählen"
 }

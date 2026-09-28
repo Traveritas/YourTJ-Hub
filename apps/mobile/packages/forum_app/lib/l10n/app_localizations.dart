@@ -5423,6 +5423,162 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Other'**
   String get reportOther;
+
+  /// No description provided for @messageActions.
+  ///
+  /// In en, this message translates to:
+  /// **'Message actions'**
+  String get messageActions;
+
+  /// No description provided for @messageForwardIndividualLimit.
+  ///
+  /// In en, this message translates to:
+  /// **'Use merged history for more than 10 messages.'**
+  String get messageForwardIndividualLimit;
+
+  /// No description provided for @messageForward.
+  ///
+  /// In en, this message translates to:
+  /// **'Forward'**
+  String get messageForward;
+
+  /// No description provided for @messageSelect.
+  ///
+  /// In en, this message translates to:
+  /// **'Select messages'**
+  String get messageSelect;
+
+  /// No description provided for @messagesSelected.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} selected'**
+  String messagesSelected(int count);
+
+  /// No description provided for @messageForwardTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Forward messages'**
+  String get messageForwardTitle;
+
+  /// No description provided for @messageForwardIndividual.
+  ///
+  /// In en, this message translates to:
+  /// **'Individually'**
+  String get messageForwardIndividual;
+
+  /// No description provided for @messageForwardMerged.
+  ///
+  /// In en, this message translates to:
+  /// **'As chat history'**
+  String get messageForwardMerged;
+
+  /// No description provided for @messageForwardExplanation.
+  ///
+  /// In en, this message translates to:
+  /// **'Selected messages are copied to recipients. Merged history includes original sender names and times.'**
+  String get messageForwardExplanation;
+
+  /// No description provided for @messageForwardTargets.
+  ///
+  /// In en, this message translates to:
+  /// **'Forward to {count} people'**
+  String messageForwardTargets(int count);
+
+  /// No description provided for @messageForwardConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirm forwarding'**
+  String get messageForwardConfirm;
+
+  /// No description provided for @messageForwardSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Sent'**
+  String get messageForwardSuccess;
+
+  /// No description provided for @messageForwardFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Not sent'**
+  String get messageForwardFailed;
+
+  /// No description provided for @messageForwardPending.
+  ///
+  /// In en, this message translates to:
+  /// **'Pending'**
+  String get messageForwardPending;
+
+  /// No description provided for @messageForwardSending.
+  ///
+  /// In en, this message translates to:
+  /// **'Sending'**
+  String get messageForwardSending;
+
+  /// No description provided for @messageForwardRetry.
+  ///
+  /// In en, this message translates to:
+  /// **'Retry unfinished deliveries'**
+  String get messageForwardRetry;
+
+  /// No description provided for @messageForwardResume.
+  ///
+  /// In en, this message translates to:
+  /// **'Continue forwarding'**
+  String get messageForwardResume;
+
+  /// No description provided for @messageForwardLimit.
+  ///
+  /// In en, this message translates to:
+  /// **'Select up to {count} messages'**
+  String messageForwardLimit(int count);
+
+  /// No description provided for @messageForwardRecipientLimit.
+  ///
+  /// In en, this message translates to:
+  /// **'Select up to {count} recipients'**
+  String messageForwardRecipientLimit(int count);
+
+  /// No description provided for @messageForwardHistory.
+  ///
+  /// In en, this message translates to:
+  /// **'Chat history'**
+  String get messageForwardHistory;
+
+  /// No description provided for @messageForwardCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} messages'**
+  String messageForwardCount(int count);
+
+  /// No description provided for @messageForwardEmptyRecipients.
+  ///
+  /// In en, this message translates to:
+  /// **'No conversations or contacts available'**
+  String get messageForwardEmptyRecipients;
+
+  /// No description provided for @messageForwardCancelRemaining.
+  ///
+  /// In en, this message translates to:
+  /// **'Discard remaining deliveries'**
+  String get messageForwardCancelRemaining;
+
+  /// No description provided for @messageForwardAbandonNotice.
+  ///
+  /// In en, this message translates to:
+  /// **'Sent messages remain. Unacknowledged messages may already be delivered; starting a new forward can duplicate them.'**
+  String get messageForwardAbandonNotice;
+
+  /// No description provided for @messageForwardSearch.
+  ///
+  /// In en, this message translates to:
+  /// **'Search conversations or contacts'**
+  String get messageForwardSearch;
+
+  /// No description provided for @messageForwardChooseTargets.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose recipients'**
+  String get messageForwardChooseTargets;
 }
 
 class _AppLocalizationsDelegate

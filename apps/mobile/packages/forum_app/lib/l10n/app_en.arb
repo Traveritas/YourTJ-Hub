@@ -21,8 +21,12 @@
   "@imageViewPosition": {
     "description": "Accessible label for opening an image in the feed gallery.",
     "placeholders": {
-      "index": {"type": "int"},
-      "count": {"type": "int"}
+      "index": {
+        "type": "int"
+      },
+      "count": {
+        "type": "int"
+      }
     }
   },
   "imageSave": "Save image",
@@ -953,13 +957,17 @@
   "profileJoinedAt": "Joined {date}",
   "@profileJoinedAt": {
     "placeholders": {
-      "date": { "type": "String" }
+      "date": {
+        "type": "String"
+      }
     }
   },
   "profileLastActive": "Last active {time}",
   "@profileLastActive": {
     "placeholders": {
-      "time": { "type": "String" }
+      "time": {
+        "type": "String"
+      }
     }
   },
   "profileActionSignup": "Joined the community",
@@ -1433,5 +1441,66 @@
   "reportAbuse": "Abuse or harassment",
   "reportIllegal": "Illegal content",
   "reportIrrelevant": "Off-topic content",
-  "reportOther": "Other"
+  "reportOther": "Other",
+  "messageActions": "Message actions",
+  "messageForwardIndividualLimit": "Use merged history for more than 10 messages.",
+  "messageForward": "Forward",
+  "messageSelect": "Select messages",
+  "messagesSelected": "{count} selected",
+  "@messagesSelected": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "messageForwardTitle": "Forward messages",
+  "messageForwardIndividual": "Individually",
+  "messageForwardMerged": "As chat history",
+  "messageForwardExplanation": "Selected messages are copied to recipients. Merged history includes original sender names and times.",
+  "messageForwardTargets": "Forward to {count} people",
+  "@messageForwardTargets": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "messageForwardConfirm": "Confirm forwarding",
+  "messageForwardSuccess": "Sent",
+  "messageForwardFailed": "Not sent",
+  "messageForwardPending": "Pending",
+  "messageForwardSending": "Sending",
+  "messageForwardRetry": "Retry unfinished deliveries",
+  "messageForwardResume": "Continue forwarding",
+  "messageForwardLimit": "Select up to {count} messages",
+  "@messageForwardLimit": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "messageForwardRecipientLimit": "Select up to {count} recipients",
+  "@messageForwardRecipientLimit": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "messageForwardHistory": "Chat history",
+  "messageForwardCount": "{count} messages",
+  "@messageForwardCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "messageForwardEmptyRecipients": "No conversations or contacts available",
+  "messageForwardCancelRemaining": "Discard remaining deliveries",
+  "messageForwardAbandonNotice": "Sent messages remain. Unacknowledged messages may already be delivered; starting a new forward can duplicate them.",
+  "messageForwardSearch": "Search conversations or contacts",
+  "messageForwardChooseTargets": "Choose recipients"
 }

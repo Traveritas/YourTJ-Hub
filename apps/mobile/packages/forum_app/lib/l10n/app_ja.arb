@@ -1024,5 +1024,66 @@
   "reportAbuse": "嫌がらせ",
   "reportIllegal": "違法な内容",
   "reportIrrelevant": "無関係な内容",
-  "reportOther": "その他"
+  "reportOther": "その他",
+  "messageActions": "メッセージ操作",
+  "messageForwardIndividualLimit": "10 件を超える場合はまとめて転送します。",
+  "messageForward": "転送",
+  "messageSelect": "複数選択",
+  "messagesSelected": "{count} 件選択",
+  "@messagesSelected": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "messageForwardTitle": "メッセージを転送",
+  "messageForwardIndividual": "個別に転送",
+  "messageForwardMerged": "まとめて転送",
+  "messageForwardExplanation": "選択したメッセージを受信者にコピーします。まとめた履歴には元の送信者名と日時が含まれます。",
+  "messageForwardTargets": "{count} 人に転送",
+  "@messageForwardTargets": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "messageForwardConfirm": "転送の確認",
+  "messageForwardSuccess": "送信済み",
+  "messageForwardFailed": "未送信",
+  "messageForwardPending": "送信待ち",
+  "messageForwardSending": "送信中",
+  "messageForwardRetry": "未完了の転送を再試行",
+  "messageForwardResume": "転送を続ける",
+  "messageForwardLimit": "最大 {count} 件選択できます",
+  "@messageForwardLimit": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "messageForwardRecipientLimit": "最大 {count} 人選択できます",
+  "@messageForwardRecipientLimit": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "messageForwardHistory": "チャット履歴",
+  "messageForwardCount": "{count} 件のメッセージ",
+  "@messageForwardCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "messageForwardEmptyRecipients": "転送先の会話や連絡先がありません",
+  "messageForwardCancelRemaining": "残りの転送を破棄",
+  "messageForwardAbandonNotice": "送信済みのメッセージは残ります。未確認のメッセージも届いている可能性があり、新しい転送では重複する場合があります。",
+  "messageForwardSearch": "会話や連絡先を検索",
+  "messageForwardChooseTargets": "受信者を選択"
 }

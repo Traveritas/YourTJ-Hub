@@ -5281,7 +5281,7 @@ SendChatMessageRequest:
     msgType:
       type: integer
       enum: [1, 2, 3]
-      description: 1 text, 2 image, 3 voice. Effectively required — omitting it binds 0 and fails validation with `common.request.invalidParams` (HTTP 200).
+      description: 1 text, 2 image, 3 voice. Merged chat history (type 4) is created only by `/api/forum/chat/forward`. Effectively required — omitting it binds 0 and fails validation with `common.request.invalidParams` (HTTP 200).
   additionalProperties: false
 
 SendChatMessageResult:
@@ -5351,8 +5351,8 @@ ChatMessageVo:
       type: string
     msgType:
       type: integer
-      enum: [1, 2, 3]
-      description: 1 text, 2 image, 3 voice.
+      enum: [1, 2, 3, 4]
+      description: 1 text, 2 image, 3 voice, 4 merged chat history. Content always includes a readable plain-text fallback.
     isRead:
       type: integer
       enum: [0, 1]
@@ -5363,6 +5363,8 @@ ChatMessageVo:
     isSelf:
       type: boolean
       description: True when the caller sent this message.
+    forwarded:
+      $ref: ./chat-forward.yaml#/ChatForwardBundle
   additionalProperties: false
 
 ChatMessagesResult:

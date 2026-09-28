@@ -114,12 +114,13 @@ void expectCircularAvatar(
     Clip.antiAlias,
     reason: 'the image must be clipped to the circular decoration',
   );
-  final BoxDecoration? foregroundDecoration =
-      container.foregroundDecoration as BoxDecoration?;
   expect(
-    decoration.border ?? foregroundDecoration?.border,
-    ring ? isNotNull : isNull,
+    decoration.border,
+    isNull,
+    reason: 'the clip must not inset its image',
   );
+  final foreground = container.foregroundDecoration as BoxDecoration?;
+  expect(foreground?.border, ring ? isNotNull : isNull);
   expect(tester.getSize(avatarFinder), Size(size, size));
   expect(
     find.descendant(of: avatarFinder, matching: find.byType(CustomPaint)),
@@ -131,6 +132,24 @@ void expectCircularAvatar(
 }
 
 void main() {
+  testWidgets('ring does not inset the square image inside the outer circle', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      gfApp(
+        const GfAvatar(
+          src: 'https://example.test/avatar.png',
+          size: 40,
+          ring: true,
+        ),
+      ),
+    );
+    // An inset square clipped by the larger outer circle has flat sides: the
+    // reported polygon appearance. The image must cover the full clip; the
+    // ring paints on top of that circle instead of adding content padding.
+    expect(tester.getSize(find.byType(Image)), const Size(40, 40));
+  });
+
   testWidgets('GfAvatar keeps every DM size circular and clipped', (
     tester,
   ) async {

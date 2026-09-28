@@ -86,6 +86,9 @@ class GfAvatar extends StatelessWidget {
       width: size,
       height: size,
       decoration: BoxDecoration(shape: BoxShape.circle, color: colors.base200),
+      // A decoration border also adds content padding. Insetting the square
+      // image then clipping it by the larger outer circle leaves flat sides.
+      // Paint the ring over the full circular image instead (issue #877).
       foregroundDecoration: ring
           ? BoxDecoration(
               shape: BoxShape.circle,

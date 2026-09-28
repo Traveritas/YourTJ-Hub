@@ -1871,6 +1871,10 @@ export default {
     },
   },
   messages: {
+    forwardHistory: 'チャット履歴',
+    forwardCount: '{count} 件のメッセージ',
+    forwardClose: 'チャット履歴を閉じる',
+
     title: 'メッセージ',
     newMessage: '新規メッセージ',
     searchConversations: '会話を検索',

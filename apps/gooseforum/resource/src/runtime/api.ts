@@ -838,6 +838,7 @@ async function abortDirectImageUpload(name: string) {
 }
 
 export interface ChatMessagePayload {
+  forwarded?: import('@gooseforum/client').ChatForwardBundle
   id: number
   senderId: number
   content: string

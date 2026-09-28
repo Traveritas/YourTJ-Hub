@@ -20,8 +20,13 @@ final userBlocksProvider = FutureProvider.autoDispose<UserBlocksPayload>((
 });
 
 class UserBlockButton extends ConsumerStatefulWidget {
-  const UserBlockButton({super.key, required this.userId});
+  const UserBlockButton({
+    super.key,
+    required this.userId,
+    this.moreMenu = false,
+  });
   final int userId;
+  final bool moreMenu;
   @override
   ConsumerState<UserBlockButton> createState() => _UserBlockButtonState();
 }
@@ -57,12 +62,55 @@ class _UserBlockButtonState extends ConsumerState<UserBlockButton> {
       return const SizedBox.shrink();
     }
     final list = ref.watch(userBlocksProvider);
+    final epoch = ref.watch(offlineCacheEpochProvider);
     final l10n = AppLocalizations.of(context);
     final blocked =
         list.valueOrNull?.blocks.any(
           (item) => item.targetUserId == widget.userId,
         ) ??
         false;
+    final label = list.hasError
+        ? l10n.commonRetry
+        : blocked
+        ? l10n.userUnblock
+        : l10n.userBlock;
+    if (widget.moreMenu) {
+      return PopupMenuButton<String>(
+        tooltip: l10n.profileMore,
+        icon: const GfSymbol('ellipsis'),
+        useRootNavigator: true,
+        enabled: !_busy,
+        onSelected: (_) {
+          if (epoch != ref.read(offlineCacheEpochProvider)) return;
+          if (list.hasError) {
+            ref.invalidate(userBlocksProvider);
+          } else {
+            _change(!blocked);
+          }
+        },
+        itemBuilder: (_) => [
+          PopupMenuItem<String>(
+            value: 'block',
+            enabled: !list.isLoading,
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(
+                  list.hasError
+                      ? Icons.refresh
+                      : blocked
+                      ? Icons.person_off
+                      : Icons.block,
+                  size: 20,
+                ),
+                const SizedBox(width: 12),
+                Text(label),
+              ],
+            ),
+          ),
+        ],
+      );
+    }
     return IconButton(
       constraints: const BoxConstraints(minWidth: 48, minHeight: 48),
       tooltip: list.hasError

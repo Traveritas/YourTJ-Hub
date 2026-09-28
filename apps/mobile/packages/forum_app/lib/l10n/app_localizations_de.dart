@@ -2986,4 +2986,97 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get reportOther => 'Sonstiges';
+
+  @override
+  String get messageActions => 'Nachrichtenaktionen';
+
+  @override
+  String get messageForwardIndividualLimit =>
+      'Mehr als 10 Nachrichten werden als Verlauf weitergeleitet.';
+
+  @override
+  String get messageForward => 'Weiterleiten';
+
+  @override
+  String get messageSelect => 'Nachrichten auswählen';
+
+  @override
+  String messagesSelected(int count) {
+    return '$count ausgewählt';
+  }
+
+  @override
+  String get messageForwardTitle => 'Nachrichten weiterleiten';
+
+  @override
+  String get messageForwardIndividual => 'Einzeln';
+
+  @override
+  String get messageForwardMerged => 'Als Chatverlauf';
+
+  @override
+  String get messageForwardExplanation =>
+      'Ausgewählte Nachrichten werden kopiert. Zusammengefasste Verläufe enthalten ursprüngliche Absendernamen und Zeiten.';
+
+  @override
+  String messageForwardTargets(int count) {
+    return 'An $count Personen weiterleiten';
+  }
+
+  @override
+  String get messageForwardConfirm => 'Weiterleitung bestätigen';
+
+  @override
+  String get messageForwardSuccess => 'Gesendet';
+
+  @override
+  String get messageForwardFailed => 'Nicht gesendet';
+
+  @override
+  String get messageForwardPending => 'Ausstehend';
+
+  @override
+  String get messageForwardSending => 'Wird gesendet';
+
+  @override
+  String get messageForwardRetry => 'Offene Weiterleitungen wiederholen';
+
+  @override
+  String get messageForwardResume => 'Weiterleitung fortsetzen';
+
+  @override
+  String messageForwardLimit(int count) {
+    return 'Bis zu $count Nachrichten auswählen';
+  }
+
+  @override
+  String messageForwardRecipientLimit(int count) {
+    return 'Bis zu $count Empfänger auswählen';
+  }
+
+  @override
+  String get messageForwardHistory => 'Chatverlauf';
+
+  @override
+  String messageForwardCount(int count) {
+    return '$count Nachrichten';
+  }
+
+  @override
+  String get messageForwardEmptyRecipients =>
+      'Keine Gespräche oder Kontakte verfügbar';
+
+  @override
+  String get messageForwardCancelRemaining =>
+      'Übrige Weiterleitungen verwerfen';
+
+  @override
+  String get messageForwardAbandonNotice =>
+      'Gesendete Nachrichten bleiben bestehen. Unbestätigte Nachrichten können bereits zugestellt sein; eine neue Weiterleitung kann Duplikate erzeugen.';
+
+  @override
+  String get messageForwardSearch => 'Gespräche oder Kontakte suchen';
+
+  @override
+  String get messageForwardChooseTargets => 'Empfänger auswählen';
 }

@@ -21,8 +21,10 @@ vi.mock('@/runtime/unread-status', () => ({
 }))
 
 let wrapper: VueWrapper | undefined
+const initialLocale = i18n.global.locale.value
 afterEach(() => {
   wrapper?.unmount()
+  i18n.global.locale.value = initialLocale
   window.history.replaceState({}, '', '/')
   vi.resetAllMocks()
 })
@@ -61,7 +63,8 @@ it('resolves received personal tokens as inert images while preserving escaped t
   expect(window.location.pathname).toBe('/messages')
 })
 
-it('会话列表把 peerNickname 作为显示名传给备注渲染（note(display name)）', async () => {
+it.each(['en', 'zh'] as const)('会话列表显示昵称与本地化转发摘要（%s）', async (locale) => {
+  i18n.global.locale.value = locale
   messages.mockResolvedValue({ list: [], hasMoreBefore: false })
   resolve.mockResolvedValue([])
   window.history.replaceState({}, '', '/messages?userId=2')
@@ -76,7 +79,7 @@ it('会话列表把 peerNickname 作为显示名传给备注渲染（note(displa
           peerUsername: 'bob',
           peerNickname: '鲍勃',
           peerAvatar: '',
-          lastMsg: '',
+          lastMsg: '[Chat history]\nForwarder: [Chat history]\nBob: [:sticker:smile:]',
           lastMsgTime: '',
           unreadCount: 0,
           peerUrl: '/u/2',
@@ -88,4 +91,6 @@ it('会话列表把 peerNickname 作为显示名传给备注渲染（note(displa
   })
   await flushPromises()
   expect(wrapper.text()).toContain('鲍勃')
+  const label = `[${i18n.global.t('messages.forwardHistory')}]`
+  expect(wrapper.text()).toContain(`${label} Forwarder: ${label} Bob: [smile]`)
 })

@@ -437,6 +437,7 @@ func apiRoute(ginApp *gin.Engine) {
 	agentApi.POST("topics/:topicId/posts", middleware.RateLimit(middleware.RateLimitPostCreate), UpUriLimitedJsonReq(maxContentWriteBodyBytes, api.AgentCreatePost))
 	agentApi.GET("search", UpQueryReq(forum.SearchJSON))
 	chatApi.POST("send", middleware.CheckWritableAccount, middleware.RateLimit(middleware.RateLimitMessageSend), UpButterReq(api.SendMessage))
+	chatApi.POST("forward", middleware.CheckWritableAccount, middleware.RateLimitChatForward(), UpLimitedJsonReq(8192, api.ForwardMessages))
 	chatApi.POST("messages", UpButterReq(api.GetMessages))
 	chatApi.POST("mark-read", middleware.CheckWritableAccountAllowPendingActivation, UpButterReq(api.MarkChatRead))
 	chatApi.POST("mark-visible", middleware.CheckWritableAccountAllowPendingActivation, UpButterReq(api.MarkChatVisibleRead))

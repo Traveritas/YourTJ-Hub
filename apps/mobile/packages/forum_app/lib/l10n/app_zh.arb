@@ -1377,5 +1377,66 @@
   "reportAbuse": "辱骂或骚扰",
   "reportIllegal": "违法内容",
   "reportIrrelevant": "无关内容",
-  "reportOther": "其他"
+  "reportOther": "其他",
+  "messageActions": "消息操作",
+  "messageForwardIndividualLimit": "超过 10 条消息时使用合并转发。",
+  "messageForward": "转发",
+  "messageSelect": "多选",
+  "messagesSelected": "已选 {count} 条",
+  "@messagesSelected": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "messageForwardTitle": "转发消息",
+  "messageForwardIndividual": "逐条转发",
+  "messageForwardMerged": "合并转发",
+  "messageForwardExplanation": "所选消息会复制给接收者；合并转发会附上原发送者名称和时间。",
+  "messageForwardTargets": "转发给 {count} 人",
+  "@messageForwardTargets": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "messageForwardConfirm": "确认转发",
+  "messageForwardSuccess": "已发送",
+  "messageForwardFailed": "未发送",
+  "messageForwardPending": "待发送",
+  "messageForwardSending": "正在发送",
+  "messageForwardRetry": "重试未完成的转发",
+  "messageForwardResume": "继续转发",
+  "messageForwardLimit": "最多选择 {count} 条消息",
+  "@messageForwardLimit": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "messageForwardRecipientLimit": "最多选择 {count} 位接收者",
+  "@messageForwardRecipientLimit": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "messageForwardHistory": "聊天记录",
+  "messageForwardCount": "共 {count} 条消息",
+  "@messageForwardCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "messageForwardEmptyRecipients": "暂无可转发的会话或联系人",
+  "messageForwardCancelRemaining": "放弃剩余转发",
+  "messageForwardAbandonNotice": "已发送的消息会保留。未确认送达的消息可能已被接收；再次新建转发可能产生重复。",
+  "messageForwardSearch": "搜索会话或联系人",
+  "messageForwardChooseTargets": "选择接收者"
 }
