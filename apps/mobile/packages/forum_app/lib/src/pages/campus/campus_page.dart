@@ -647,6 +647,9 @@ class _CampusWorkspaceState extends ConsumerState<_CampusWorkspace>
     final state = privateVisible
         ? ref.watch(campusControllerProvider)
         : const CampusViewState();
+    final withholdData =
+        privateVisible &&
+        ref.read(campusControllerProvider.notifier).withholdDataUntilFresh;
     final binding = state.status?.binding;
     final identityRejected =
         state.needsAuthorization || isCampusIdentityError(state.error);
@@ -679,12 +682,7 @@ class _CampusWorkspaceState extends ConsumerState<_CampusWorkspace>
     };
     final tabKeys = labels.keys.toList(growable: false);
     Widget content;
-    if (!privateVisible ||
-        state.loading ||
-        (privateVisible &&
-            ref
-                .read(campusControllerProvider.notifier)
-                .withholdDataUntilFresh)) {
+    if (!privateVisible || state.loading || withholdData) {
       content = _CampusRefreshSkeleton(
         tab: _tab,
         week: _navigation.week ?? 1,
@@ -811,7 +809,7 @@ class _CampusWorkspaceState extends ConsumerState<_CampusWorkspace>
           final ready =
               (navigation.offsets[tab] ?? 0) <= 0 ||
               (!state.loading &&
-                  !state.refreshing &&
+                  !withholdData &&
                   (campusTabKeys[tab] ?? []).every(
                     (key) =>
                         !state.fetching.contains(key) &&
@@ -1193,7 +1191,8 @@ class _CampusRefreshSkeletonState extends State<_CampusRefreshSkeleton>
         child: Text(
           label,
           style: TextStyle(
-            fontSize: 12 * scale,
+            // Text applies the ambient scaler; only grid geometry scales here.
+            fontSize: 12,
             fontWeight: FontWeight.w600,
             color: colors.baseContent,
           ),
@@ -1215,7 +1214,7 @@ class _CampusRefreshSkeletonState extends State<_CampusRefreshSkeleton>
             Text(
               '$row',
               style: TextStyle(
-                fontSize: 12 * scale,
+                fontSize: 12,
                 fontWeight: FontWeight.w700,
                 color: colors.baseContent.withValues(alpha: .7),
               ),

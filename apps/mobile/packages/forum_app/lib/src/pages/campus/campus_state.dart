@@ -79,7 +79,15 @@ class CampusController extends StateNotifier<CampusViewState> {
   CampusSnapshot? _snapshot;
   bool _withholdDataUntilFresh = false;
 
-  bool get withholdDataUntilFresh => _withholdDataUntilFresh;
+  // Unrelated snapshot reads may continue after this section has a fresh
+  // result or error. They still finish together before the snapshot is saved.
+  bool get withholdDataUntilFresh =>
+      _withholdDataUntilFresh &&
+      (campusTabKeys[tab] ?? const <String>[]).any(
+        (key) =>
+            _loading.contains(key) ||
+            (!state.data.containsKey(key) && !state.errors.containsKey(key)),
+      );
 
   Future<CampusCalendarExport?> exportCalendar({
     bool applyAdjustments = true,

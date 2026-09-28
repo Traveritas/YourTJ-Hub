@@ -8,6 +8,7 @@ import 'package:forum_app/src/current_user.dart';
 import 'package:forum_app/src/navigation/tab_scroll_registry.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/gestures.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:forum_app/l10n/app_localizations.dart';
 import 'package:forum_app/src/pages/campus/campus_page.dart';
@@ -15,6 +16,7 @@ import 'package:ui_kit/ui_kit.dart';
 
 import 'campus_native_test.dart' show campusTestApp;
 import 'fixtures/campus_fixtures.dart';
+import 'golden_helper.dart' show loadTestFonts;
 
 Finder get _search => find.descendant(
   of: find.byType(GfSearchField),
@@ -50,6 +52,7 @@ class _DelayedGrades extends FakeCampusRepository {
 class _DelayedResume extends FakeCampusRepository {
   Completer<CampusStatus>? statusResponse;
   Completer<CampusDataset>? messagesResponse;
+  Completer<CampusDataset>? timetableResponse;
 
   @override
   Future<CampusStatus> status({CancelToken? cancelToken}) {
@@ -62,6 +65,9 @@ class _DelayedResume extends FakeCampusRepository {
   Future<CampusDataset> dataset(String key, {CancelToken? cancelToken}) {
     if (key == 'messages' && messagesResponse != null) {
       return messagesResponse!.future;
+    }
+    if (key == 'timetable' && timetableResponse != null) {
+      return timetableResponse!.future;
     }
     return super.dataset(key, cancelToken: cancelToken);
   }
@@ -180,6 +186,99 @@ void main() {
       await tester.pumpAndSettle();
     },
   );
+
+  for (final succeeds in [true, false]) {
+    testWidgets('current section resumes before unrelated data: $succeeds', (
+      tester,
+    ) async {
+      final repo = _DelayedResume();
+      await tester.pumpWidget(campusTestApp(repo));
+      await tester.pumpAndSettle();
+      await _select(tester, 'messages');
+      _list(tester).jumpTo(120);
+      await tester.pump();
+
+      tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.inactive);
+      await tester.pumpAndSettle();
+      repo.statusResponse = Completer<CampusStatus>();
+      repo.messagesResponse = Completer<CampusDataset>();
+      repo.timetableResponse = Completer<CampusDataset>();
+      tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.resumed);
+      await tester.pump();
+      expect(_search, findsNothing);
+      repo.statusResponse!.complete(testStatus);
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 100));
+      expect(_search, findsNothing);
+
+      if (succeeds) {
+        repo.messagesResponse!.complete(campusFixture('messages'));
+      } else {
+        repo.messagesResponse!.completeError(
+          const ApiException(fallbackMessage: 'Messages unavailable'),
+        );
+      }
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 100));
+      final container = ProviderScope.containerOf(
+        tester.element(find.byType(CampusPage)),
+      );
+      final state = container.read(campusControllerProvider);
+      expect(state.fetching, contains('timetable'));
+      expect(state.snapshot, isNull); // Never commit an incomplete snapshot.
+      expect(state.errors.containsKey('messages'), !succeeds);
+      final currentSectionVisible = _search.evaluate().isNotEmpty;
+      final restoredOffset = _list(tester).offset;
+
+      repo.timetableResponse!.complete(campusFixture('timetable'));
+      await tester.pumpAndSettle();
+      expect(container.read(campusControllerProvider).snapshot, isNotNull);
+      await tester.pumpWidget(const SizedBox());
+      await tester.pumpAndSettle();
+      expect(currentSectionVisible, isTrue);
+      if (succeeds) expect(restoredOffset, closeTo(120, 1));
+    });
+  }
+
+  testWidgets('large-text timetable skeleton keeps its labels unclipped', (
+    tester,
+  ) async {
+    await loadTestFonts(tester);
+    tester.view.devicePixelRatio = 1;
+    tester.view.physicalSize = const Size(320, 568);
+    addTearDown(tester.view.reset);
+    final repo = _DelayedResume();
+    await tester.pumpWidget(
+      campusTestApp(repo, scale: 2, locale: const Locale('de')),
+    );
+    await tester.pumpAndSettle();
+    await _select(tester, 'timetable');
+    final l = AppLocalizations.of(tester.element(find.byType(CampusPage)));
+    tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.inactive);
+    await tester.pumpAndSettle();
+    repo.statusResponse = Completer<CampusStatus>();
+    tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.resumed);
+    await tester.pump();
+    final paragraph = tester.renderObject<RenderParagraph>(
+      find.descendant(
+        of: find.text(l.scheduleTimeAxis),
+        matching: find.byType(RichText),
+      ),
+    );
+    final painter = TextPainter(
+      text: paragraph.text,
+      textDirection: paragraph.textDirection,
+      textScaler: paragraph.textScaler,
+    )..layout(maxWidth: paragraph.size.width);
+    final naturalHeight = painter.height;
+    final availableHeight = paragraph.size.height;
+    painter.dispose();
+    repo.statusResponse!.complete(testStatus);
+    await tester.pumpAndSettle();
+    await tester.pumpWidget(const SizedBox());
+    await tester.pumpAndSettle();
+    expect(naturalHeight, lessThanOrEqualTo(availableHeight));
+  });
 
   testWidgets('campus sections retain independent search text', (tester) async {
     await tester.pumpWidget(campusTestApp(FakeCampusRepository()));
