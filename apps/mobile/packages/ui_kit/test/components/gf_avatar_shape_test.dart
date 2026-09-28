@@ -200,6 +200,46 @@ void main() {
     );
   });
 
+  testWidgets('ring does not inset the image at small avatar sizes', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      gfApp(
+        const Column(
+          children: <Widget>[
+            GfAvatar(
+              src: 'https://example.test/avatar-small.png',
+              size: 24,
+              ring: true,
+            ),
+            GfAvatar(
+              src: 'https://example.test/avatar-conversation.png',
+              size: 40,
+              ring: true,
+            ),
+          ],
+        ),
+      ),
+    );
+
+    for (int index = 0; index < 2; index++) {
+      final Finder avatarFinder = find.byType(GfAvatar).at(index);
+      final double size = index == 0 ? 24 : 40;
+      expectCircularAvatar(tester, avatarFinder, size: size, ring: true);
+
+      final Finder imageFinder = find.descendant(
+        of: avatarFinder,
+        matching: find.byType(Image),
+      );
+      expect(imageFinder, findsOneWidget);
+      expect(
+        tester.getRect(imageFinder),
+        tester.getRect(avatarFinder),
+        reason: 'ring must not inset the $size px avatar image',
+      );
+    }
+  });
+
   testWidgets('conversation list row keeps the circular 40px ring avatar', (
     tester,
   ) async {
@@ -224,5 +264,35 @@ void main() {
     );
     expect(avatarFinder, findsOneWidget);
     expectCircularAvatar(tester, avatarFinder, size: 40, ring: true);
+  });
+
+  testWidgets('topic feed list keeps circular participant avatars', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      gfApp(
+        const SizedBox(
+          width: 360,
+          child: GfTopicRow(
+            title: 'Topic',
+            description: '',
+            categories: <GfTopicCategory>[],
+            participantAvatarUrls: <String>['', ''],
+            activityText: 'updated',
+            replyCount: 2,
+            showDivider: false,
+          ),
+        ),
+      ),
+    );
+
+    final Finder avatars = find.descendant(
+      of: find.byType(GfTopicRow),
+      matching: find.byType(GfAvatar),
+    );
+    expect(avatars, findsNWidgets(2));
+    for (int index = 0; index < 2; index++) {
+      expectCircularAvatar(tester, avatars.at(index), size: 24, ring: true);
+    }
   });
 }
