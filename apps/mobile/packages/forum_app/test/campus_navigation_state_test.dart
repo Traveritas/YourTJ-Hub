@@ -47,6 +47,26 @@ class _DelayedGrades extends FakeCampusRepository {
   }
 }
 
+class _DelayedResume extends FakeCampusRepository {
+  Completer<CampusStatus>? statusResponse;
+  Completer<CampusDataset>? messagesResponse;
+
+  @override
+  Future<CampusStatus> status({CancelToken? cancelToken}) {
+    final response = statusResponse;
+    if (response != null) return response.future;
+    return super.status(cancelToken: cancelToken);
+  }
+
+  @override
+  Future<CampusDataset> dataset(String key, {CancelToken? cancelToken}) {
+    if (key == 'messages' && messagesResponse != null) {
+      return messagesResponse!.future;
+    }
+    return super.dataset(key, cancelToken: cancelToken);
+  }
+}
+
 void main() {
   testWidgets('campus tab return preserves selected notice search', (
     tester,
@@ -69,6 +89,8 @@ void main() {
     await tester.pumpAndSettle();
     visible.value = false;
     await tester.pumpAndSettle();
+    expect(find.byType(GfTabBar), findsOneWidget);
+    expect(find.byType(GfSkeleton), findsWidgets);
     expect(find.byType(TextField), findsNothing);
     visible.value = true;
     await tester.pumpAndSettle();
@@ -78,6 +100,86 @@ void main() {
     await tester.pumpWidget(const SizedBox());
     await tester.pumpAndSettle();
   });
+
+  testWidgets('campus navigation survives app backgrounding', (tester) async {
+    await tester.pumpWidget(campusTestApp(FakeCampusRepository()));
+    await tester.pumpAndSettle();
+    await _select(tester, 'messages');
+    await tester.enterText(_search, '图书馆');
+    await tester.pumpAndSettle();
+
+    for (final state in [
+      AppLifecycleState.inactive,
+      AppLifecycleState.hidden,
+      AppLifecycleState.paused,
+    ]) {
+      tester.binding.handleAppLifecycleStateChanged(state);
+      await tester.pumpAndSettle();
+      expect(find.byType(GfTabBar), findsOneWidget);
+      expect(find.byType(GfSkeleton), findsWidgets);
+      expect(find.byType(TextField), findsNothing);
+    }
+
+    tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.resumed);
+    await tester.pumpAndSettle();
+
+    expect(tester.widget<GfTabBar>(find.byType(GfTabBar)).selected, 'messages');
+    expect(tester.widget<TextField>(_search).controller!.text, '图书馆');
+    await tester.pumpWidget(const SizedBox());
+    await tester.pumpAndSettle();
+  });
+
+  testWidgets(
+    'campus keeps its shell and skeleton until fresh resume data arrives',
+    (tester) async {
+      final repo = _DelayedResume();
+      await tester.pumpWidget(campusTestApp(repo));
+      await tester.pumpAndSettle();
+      await _select(tester, 'messages');
+      await tester.enterText(_search, '图书馆');
+      await tester.pumpAndSettle();
+      final campusTitle = AppLocalizations.of(
+        tester.element(find.byType(CampusPage)),
+      ).campusTitle;
+
+      tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.paused);
+      await tester.pumpAndSettle();
+      expect(find.text('校园文化节报名开始（演示）'), findsNothing);
+      expect(find.text(campusTitle), findsOneWidget);
+      expect(find.byType(GfTabBar), findsOneWidget);
+
+      repo.statusResponse = Completer<CampusStatus>();
+      repo.messagesResponse = Completer<CampusDataset>();
+      tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.hidden);
+      await tester.pump();
+      tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.inactive);
+      await tester.pump();
+      tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.resumed);
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 100));
+      expect(find.byType(GfTabBar), findsOneWidget);
+      expect(
+        tester.widget<GfTabBar>(find.byType(GfTabBar)).selected,
+        'messages',
+      );
+      expect(find.byType(GfSkeleton), findsWidgets);
+      expect(find.byType(TextField), findsNothing);
+      expect(find.text('校园文化节报名开始（演示）'), findsNothing);
+
+      repo.statusResponse!.complete(testStatus);
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 100));
+      expect(find.byType(GfSkeleton), findsWidgets);
+      expect(find.text('校园文化节报名开始（演示）'), findsNothing);
+
+      repo.messagesResponse!.complete(campusFixture('messages'));
+      await tester.pumpAndSettle();
+      expect(tester.widget<TextField>(_search).controller!.text, '图书馆');
+      expect(find.text('图书馆开放时间调整（演示）'), findsWidgets);
+      await tester.pumpWidget(const SizedBox());
+      await tester.pumpAndSettle();
+    },
+  );
 
   testWidgets('campus sections retain independent search text', (tester) async {
     await tester.pumpWidget(campusTestApp(FakeCampusRepository()));
@@ -179,7 +281,7 @@ void main() {
     },
   );
 
-  for (final boundary in ['background', 'session', 'binding']) {
+  for (final boundary in ['session', 'binding']) {
     testWidgets('campus navigation clears at $boundary boundary', (
       tester,
     ) async {
@@ -202,33 +304,23 @@ void main() {
       final container = ProviderScope.containerOf(
         tester.element(find.byType(CampusPage)),
       );
-      if (boundary == 'background') {
-        tester.binding.handleAppLifecycleStateChanged(
-          AppLifecycleState.inactive,
-        );
-        await tester.pumpAndSettle();
-        tester.binding.handleAppLifecycleStateChanged(
-          AppLifecycleState.resumed,
-        );
+      visible.value = false;
+      await tester.pumpAndSettle();
+      if (boundary == 'session') {
+        container.read(offlineCacheEpochProvider.notifier).invalidate();
       } else {
-        visible.value = false;
-        await tester.pumpAndSettle();
-        if (boundary == 'session') {
-          container.read(offlineCacheEpochProvider.notifier).invalidate();
-        } else {
-          repo.current = const CampusStatus(
-            enabled: true,
-            candidate: null,
-            binding: CampusBinding(
-              maskedId: 'NEW',
-              boundAt: '',
-              revision: 'changed',
-              needsAuthorization: false,
-            ),
-          );
-        }
-        visible.value = true;
+        repo.current = const CampusStatus(
+          enabled: true,
+          candidate: null,
+          binding: CampusBinding(
+            maskedId: 'NEW',
+            boundAt: '',
+            revision: 'changed',
+            needsAuthorization: false,
+          ),
+        );
       }
+      visible.value = true;
       await tester.pumpAndSettle();
       expect(tester.widget<GfTabBar>(find.byType(GfTabBar)).selected, 'today');
       await _select(tester, 'messages');
@@ -504,7 +596,12 @@ void main() {
       visible.value = true;
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 300));
-      final list = find.byType(ListView).first;
+      final list = find
+          .descendant(
+            of: find.byType(GfScrollToTop),
+            matching: find.byType(ListView),
+          )
+          .first;
       if (input == 'drag') {
         await tester.drag(list, const Offset(0, -100));
       } else {

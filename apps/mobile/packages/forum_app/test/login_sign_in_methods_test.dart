@@ -335,6 +335,34 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
+  testWidgets('registration uses a larger centered brand in the upper page', (
+    tester,
+  ) async {
+    final h = await _pumpLogin(
+      tester,
+      topInset: 47,
+      bottomInset: 34,
+      deviceFonts: true,
+    );
+    final Image loginBrand = tester.widget<Image>(_brand);
+    expect(loginBrand.width, 176);
+    expect(loginBrand.height, 32);
+
+    await tester.tap(find.text(h.l10n.loginModeRegister).first);
+    await tester.pumpAndSettle();
+
+    final Image registrationBrand = tester.widget<Image>(_brand);
+    final Rect brandRect = tester.getRect(_brand);
+    expect(registrationBrand.width, 192);
+    expect(registrationBrand.height, 44);
+    expect(brandRect.center.dx, closeTo(h.viewportRect.center.dx, 0.5));
+    expect(
+      brandRect.center.dy,
+      lessThan(tester.view.physicalSize.height * 0.3),
+    );
+    expect(tester.takeException(), isNull);
+  });
+
   testWidgets('the control opens one sheet with every available provider', (
     tester,
   ) async {

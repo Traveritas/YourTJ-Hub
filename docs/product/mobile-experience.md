@@ -638,16 +638,22 @@ identity survive this layout change. The header keeps a small outer margin for i
   switching sections, bottom destinations or returning from a pushed page. Scroll restoration waits
   for the selected section's data and clamps to the available content; a fresh section settles at
   the top immediately, and manual scrolling cancels pending restoration. These choices stay only in
-  page memory; backgrounding, session/account/site changes, binding changes (including the first
-  binding after an observed unbound state) and authorization loss clear them. Private views still unmount and cancel requests when hidden; grades and notice bodies
-  are not retained by this navigation state or added to the device snapshot.
+  page memory and survive app backgrounding; they are not serialized. Session/account/site changes,
+  binding changes (including the first binding after an observed unbound state) and authorization
+  loss still clear them. Backgrounding unmounts private response content, cancels its requests and
+  clears the controller and foreground memory cache while the campus header and tab bar remain in
+  place. On return, binding status is verified and current data is fetched again; the on-device
+  snapshot remains stored for cold-start recovery but is skipped during this foreground refresh.
+  A data-free, tab-shaped skeleton mirrors each section's real layout, retains fixed headings and
+  controls, and uses a shared theme-aware shimmer unless reduced motion is enabled. Grades and
+  notice bodies are not retained by the navigation state or added to the device snapshot.
 - `Current`: school authorization uses the current native forum session in a restricted WebView.
   The initial Bearer header goes only to the first-party session handoff; school navigation receives
   no native credential. The server callback returns to a native confirmation, including resuming
-  a notice after a permission update. Leaving the campus tab drops its private view and cancels
-  requests. Selected overview datasets have a five-minute foreground memory cache, reusable only
-  after fresh binding-status verification; grades and notice bodies remain page-local.
-  Backgrounding clears the foreground memory layer. A Drift device snapshot atomically retains only
+  a notice after a permission update. Leaving the campus tab drops its private response content and
+  cancels requests. Selected overview datasets have a five-minute foreground memory cache, reusable
+  only after fresh binding-status verification; grades and notice bodies remain page-local.
+  Backgrounding clears the foreground memory layer and controller state. A Drift device snapshot atomically retains only
   profile, calendar, timetable and server-adjusted today data, scoped by API origin, numeric forum
   account and binding revision. Grades, exams, campus messages/bodies and credentials are excluded.
   The private campus workspace places a compact refresh icon to the right of the snapshot time,
