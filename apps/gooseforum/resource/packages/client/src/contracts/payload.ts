@@ -1206,7 +1206,7 @@ export interface UserBlockRequest { targetUserId: number; blocked: boolean }
 export interface SendChatMessageRequest { peerId: number; content: string; msgType: 1 | 2 | 3; clientMessageId?: string }
 
 
-export interface ChatForwardEntry { senderName: string; avatarUrl?: string; content: string; createdAt: string; msgType: number }
+export interface ChatForwardEntry { senderName: string; avatarUrl?: string; content: string; createdAt: string; msgType: number; forwarded?: ChatForwardBundle }
 export interface ChatForwardBundle { version: number; messages: ChatForwardEntry[] }
 export interface ForwardChatMessagesRequest { convId: number; peerId: number; messageIds: number[]; mode: 'individual' | 'merged'; clientForwardId: string }
 export interface ForwardChatMessagesResult { convId: number; messageIds: number[] }

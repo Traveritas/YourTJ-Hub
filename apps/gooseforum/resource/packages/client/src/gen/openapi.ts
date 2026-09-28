@@ -2140,8 +2140,9 @@ export interface paths {
          *     that conversation. IDs are sorted chronologically; duplicates, missing IDs,
          *     unknown types, self-targets and blocked interactions fail without any delivery.
          *     Individual mode copies up to 10 original messages; merged mode stores one type-4
-         *     immutable snapshot. Nested snapshots are flattened in merged mode, bounded to
-         *     50 entries and 64 KiB. Current sensitive-word checks apply to new deliveries.
+         *     immutable snapshot. Nested snapshots remain independently readable history
+         *     cards, bounded to 4 bundle levels, 50 total entries (including cards) and
+         *     64 KiB per snapshot. Current sensitive-word checks include all nested text.
          *     Recipients cannot use snapshots to access source conversation IDs/history.
          *     Get-messages supplies a readable content fallback and an optional forwarded
          *     object for type 4, so older clients can still read the copy.
@@ -12253,22 +12254,25 @@ export interface components {
             result: components["schemas"]["ForwardChatMessagesResult"];
         };
         ForwardChatMessagesResponse: components["schemas"]["ForwardChatMessagesSuccess"] | components["schemas"]["ApiFailure"];
-        ChatForwardEntry: {
-            /** @description Display name copied at forwarding time; no private notes. */
-            senderName: string;
-            /** @description Optional public avatar URL copied at forwarding time. Older snapshots omit it; clients use a circular placeholder. The URL does not grant access to the source conversation. */
-            avatarUrl?: string;
-            content: string;
-            /** Format: date-time */
-            createdAt: string;
-            /** @enum {integer} */
-            msgType: 1 | 2 | 3;
-        };
+        /** @description Immutable copy tree; at most 4 bundle levels, 50 total entries including history cards, and 64 KiB of encoded content. Nested cards retain their own sender metadata and copied children. */
         ChatForwardBundle: {
             /** @enum {integer} */
             version: 1;
             messages: components["schemas"]["ChatForwardEntry"][];
         };
+        ChatForwardEntry: {
+            /** @description Display name copied at forwarding time; no private notes. */
+            senderName: string;
+            /** @description Optional public avatar URL copied at forwarding time. Older snapshots omit it; clients use a circular placeholder. The URL does not grant access to the source conversation. */
+            avatarUrl?: string;
+            /** @description Readable fallback, including nested history text for older clients. */
+            content: string;
+            /** Format: date-time */
+            createdAt: string;
+            /** @enum {integer} */
+            msgType: 1 | 2 | 3 | 4;
+            forwarded?: components["schemas"]["ChatForwardBundle"];
+        } & unknown;
         ChatVisibleReadSuccess: components["schemas"]["ApiSuccess"] & {
             result: components["schemas"]["ChatVisibleReadResult"];
         };

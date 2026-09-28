@@ -29,6 +29,75 @@ class _ForwardPreviewRepository extends CountingPageRepository {
 }
 
 void main() {
+  testWidgets('nested history keeps each sender avatar and opens as a card', (
+    tester,
+  ) async {
+    final container = ProviderContainer();
+    addTearDown(container.dispose);
+    const bundle = ChatForwardBundle(
+      version: 1,
+      messages: [
+        ChatForwardEntry(
+          senderName: 'Forwarder',
+          avatarUrl: '/static/pic/6.webp',
+          content: '[Chat history]\nAlice: first\nBob: second',
+          createdAt: '2026-09-28T10:00:00Z',
+          msgType: 4,
+          forwarded: ChatForwardBundle(
+            version: 1,
+            messages: [
+              ChatForwardEntry(
+                senderName: 'Alice',
+                avatarUrl: '/static/pic/3.webp',
+                content: 'first',
+                createdAt: '2026-09-28T09:00:00Z',
+                msgType: 1,
+              ),
+              ChatForwardEntry(
+                senderName: 'Bob',
+                avatarUrl: '/static/pic/4.webp',
+                content: 'second',
+                createdAt: '2026-09-28T09:01:00Z',
+                msgType: 1,
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+    await tester.pumpWidget(
+      UncontrolledProviderScope(
+        container: container,
+        child: MaterialApp(
+          theme: gfThemeData(Brightness.light),
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: const ForwardedMessagesPage(bundle: bundle, ownerEpoch: 0),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    expect(find.byType(ForwardedMessageCard), findsOneWidget);
+    expect(
+      tester.widget<GfAvatar>(find.byType(GfAvatar)).src,
+      endsWith('/static/pic/6.webp'),
+    );
+    await tester.tap(find.byType(ForwardedMessageCard));
+    await tester.pumpAndSettle();
+    expect(find.text('first'), findsOneWidget);
+    expect(find.text('second'), findsOneWidget);
+    expect(
+      tester.widgetList<GfAvatar>(find.byType(GfAvatar)).map((a) => a.src),
+      [endsWith('/static/pic/3.webp'), endsWith('/static/pic/4.webp')],
+    );
+    await tester.binding.handlePopRoute();
+    await tester.pumpAndSettle();
+    expect(find.text('Forwarder'), findsOneWidget);
+    expect(find.byType(ForwardedMessageCard), findsOneWidget);
+    expect(tester.takeException(), isNull);
+    await tester.pumpWidget(const SizedBox());
+  });
+
   testWidgets(
     'conversation preview includes the forwarded content on one line',
     (tester) async {

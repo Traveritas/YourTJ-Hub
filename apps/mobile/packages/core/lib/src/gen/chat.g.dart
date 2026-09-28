@@ -173,6 +173,9 @@ _$ChatForwardEntryImpl _$$ChatForwardEntryImplFromJson(
   content: json['content'] as String,
   createdAt: json['createdAt'] as String,
   msgType: (json['msgType'] as num).toInt(),
+  forwarded: json['forwarded'] == null
+      ? null
+      : ChatForwardBundle.fromJson(json['forwarded'] as Map<String, dynamic>),
 );
 
 Map<String, dynamic> _$$ChatForwardEntryImplToJson(
@@ -183,6 +186,7 @@ Map<String, dynamic> _$$ChatForwardEntryImplToJson(
   'content': instance.content,
   'createdAt': instance.createdAt,
   'msgType': instance.msgType,
+  'forwarded': instance.forwarded,
 };
 
 _$ChatForwardResultImpl _$$ChatForwardResultImplFromJson(

@@ -21,6 +21,9 @@ func TestChatForwardMergedSnapshotAndRetry(t *testing.T) {
 	if err := conn.Model(&users.EntityComplete{}).Where("id = ?", sender.Id).Update("avatar_url", "/static/pic/3.webp").Error; err != nil {
 		t.Fatal(err)
 	}
+	if err := conn.Model(&users.EntityComplete{}).Where("id = ?", actor.Id).Update("avatar_url", "/static/pic/6.webp").Error; err != nil {
+		t.Fatal(err)
+	}
 	convID, err := chatservice.SendMessage(sender.Id, actor.Id, "first line", 1)
 	if err != nil {
 		t.Fatal(err)
@@ -67,6 +70,9 @@ func TestChatForwardMergedSnapshotAndRetry(t *testing.T) {
 		}
 		if entries[0].(map[string]any)["avatarUrl"] != "/static/pic/3.webp" {
 			t.Fatalf("missing immutable public avatar: %s", data)
+		}
+		if entries[1].(map[string]any)["avatarUrl"] != "/static/pic/6.webp" {
+			t.Fatalf("second sender's avatar was replaced: %s", data)
 		}
 		if err := conn.Model(&users.EntityComplete{}).Where("id = ?", sender.Id).Update("avatar_url", "/static/pic/4.webp").Error; err != nil {
 			t.Fatal(err)
@@ -195,8 +201,43 @@ func TestChatForwardIndividualAtomicRetryAndNestedBounds(t *testing.T) {
 	var nested messages.Entity
 	conn.First(&nested, again.MessageIDs[0])
 	bundle := messages.ParseForward(nested.Content)
-	if bundle == nil || len(bundle.Messages) != 2 || bundle.Messages[1].Content != "second" {
-		t.Fatalf("nested snapshot not flattened: %s", nested.Content)
+	if bundle == nil || len(bundle.Messages) != 1 || bundle.Messages[0].MsgType != messages.ForwardType {
+		t.Fatalf("nested history card was lost: %s", nested.Content)
+	}
+	var original messages.Entity
+	conn.First(&original, merged.MessageIDs[0])
+	if !reflect.DeepEqual(bundle.Messages[0].Forwarded, messages.ParseForward(original.Content)) {
+		t.Fatal("nested content or sender metadata changed")
+	}
+	level3, err := chatservice.ForwardMessages(peer.Id, chatservice.ForwardRequest{ConvID: again.ConvID, PeerID: actor.Id, MessageIDs: again.MessageIDs, Mode: "merged", ClientForwardID: "level3"})
+	if err != nil {
+		t.Fatal(err)
+	}
+	level4, err := chatservice.ForwardMessages(actor.Id, chatservice.ForwardRequest{ConvID: level3.ConvID, PeerID: target.Id, MessageIDs: level3.MessageIDs, Mode: "merged", ClientForwardID: "level4"})
+	if err != nil {
+		t.Fatal(err)
+	}
+	tooDeep := chatservice.ForwardRequest{ConvID: level4.ConvID, PeerID: peer.Id, MessageIDs: level4.MessageIDs, Mode: "merged", ClientForwardID: "level5"}
+	var before, after int64
+	conn.Model(&messages.Entity{}).Count(&before)
+	if _, err := chatservice.ForwardMessages(target.Id, tooDeep); err == nil {
+		t.Fatal("excessive nested depth delivered")
+	}
+	conn.Model(&messages.Entity{}).Count(&after)
+	if before != after {
+		t.Fatal("rejected nested forward left partial messages")
+	}
+	// Individual forwarding copies a depth-limit card without wrapping it.
+	tooDeep.Mode = "individual"
+	copy, err := chatservice.ForwardMessages(target.Id, tooDeep)
+	if err != nil {
+		t.Fatal(err)
+	}
+	var deepSource, deepCopy messages.Entity
+	conn.First(&deepSource, level4.MessageIDs[0])
+	conn.First(&deepCopy, copy.MessageIDs[0])
+	if deepSource.Content != deepCopy.Content {
+		t.Fatal("individual forwarding changed the nested snapshot")
 	}
 	// Changing the source author's profile must not mutate an acknowledged copy.
 	conn.Model(&peer).Where("id = ?", peer.Id).Update("nickname", strings.Repeat("x", messages.MaxForwardBytes))

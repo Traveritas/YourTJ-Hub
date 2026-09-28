@@ -79,7 +79,7 @@ it.each(['en', 'zh'] as const)('会话列表显示昵称与本地化转发摘要
           peerUsername: 'bob',
           peerNickname: '鲍勃',
           peerAvatar: '',
-          lastMsg: '[Chat history]\nBob: [:sticker:smile:]',
+          lastMsg: '[Chat history]\nForwarder: [Chat history]\nBob: [:sticker:smile:]',
           lastMsgTime: '',
           unreadCount: 0,
           peerUrl: '/u/2',
@@ -91,5 +91,6 @@ it.each(['en', 'zh'] as const)('会话列表显示昵称与本地化转发摘要
   })
   await flushPromises()
   expect(wrapper.text()).toContain('鲍勃')
-  expect(wrapper.text()).toContain(`[${i18n.global.t('messages.forwardHistory')}] Bob: [smile]`)
+  const label = `[${i18n.global.t('messages.forwardHistory')}]`
+  expect(wrapper.text()).toContain(`${label} Forwarder: ${label} Bob: [smile]`)
 })

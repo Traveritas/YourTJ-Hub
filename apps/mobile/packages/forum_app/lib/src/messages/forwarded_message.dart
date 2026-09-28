@@ -47,7 +47,7 @@ class ForwardedMessageCard extends ConsumerWidget {
                 Padding(
                   padding: const EdgeInsets.only(bottom: 4),
                   child: Text(
-                    '${item.senderName}: ${chatReplyExcerpt(item.content, maxLength: 80)}',
+                    '${item.senderName}: ${item.forwarded != null ? l10n.messageForwardHistory : chatReplyExcerpt(item.content, maxLength: 80)}',
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: const TextStyle(fontSize: 13),
@@ -119,6 +119,9 @@ class ForwardedMessagesPage extends ConsumerWidget {
                     mine: false,
                     time: formatDateTime(entry.createdAt),
                     maxWidthFactor: 0.74,
+                    content: entry.forwarded == null
+                        ? null
+                        : ForwardedMessageCard(bundle: entry.forwarded!),
                   ),
                 );
               },

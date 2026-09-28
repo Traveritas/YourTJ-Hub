@@ -1,7 +1,7 @@
 # Private message forwarding uses bounded immutable snapshots
 
 ## Status
-Accepted
+Superseded by [0044](0044-nested-private-message-history.md)
 Class: feature
 
 ## Context and Problem Statement

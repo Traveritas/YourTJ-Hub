@@ -58,7 +58,10 @@ function messageSegments(content: string) {
 
 // Localize the stable legacy fallback marker without changing the stored copy.
 function conversationPreview(content: string) {
-  return stickerPreviewLabel(content).replace(/^\[Chat history\]\s+/, `[${t('messages.forwardHistory')}] `)
+  const preview = stickerPreviewLabel(content).replace(/\s+/g, ' ').trim()
+  return preview.startsWith('[Chat history]')
+    ? preview.replaceAll('[Chat history]', `[${t('messages.forwardHistory')}]`)
+    : preview
 }
 const messagePageLimit = 30
 const emojis = ['😀', '😂', '😍', '😊', '😭', '👍', '🙏', '🔥', '✨', '🎉', '🤔', '👀', '❤️', '🙌', '👏', '✅']

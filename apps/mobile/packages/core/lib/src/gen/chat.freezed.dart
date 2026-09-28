@@ -1977,6 +1977,7 @@ mixin _$ChatForwardEntry {
   String get content => throw _privateConstructorUsedError;
   String get createdAt => throw _privateConstructorUsedError;
   int get msgType => throw _privateConstructorUsedError;
+  ChatForwardBundle? get forwarded => throw _privateConstructorUsedError;
 
   /// Serializes this ChatForwardEntry to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
@@ -2001,7 +2002,10 @@ abstract class $ChatForwardEntryCopyWith<$Res> {
     String content,
     String createdAt,
     int msgType,
+    ChatForwardBundle? forwarded,
   });
+
+  $ChatForwardBundleCopyWith<$Res>? get forwarded;
 }
 
 /// @nodoc
@@ -2024,6 +2028,7 @@ class _$ChatForwardEntryCopyWithImpl<$Res, $Val extends ChatForwardEntry>
     Object? content = null,
     Object? createdAt = null,
     Object? msgType = null,
+    Object? forwarded = freezed,
   }) {
     return _then(
       _value.copyWith(
@@ -2047,9 +2052,27 @@ class _$ChatForwardEntryCopyWithImpl<$Res, $Val extends ChatForwardEntry>
                 ? _value.msgType
                 : msgType // ignore: cast_nullable_to_non_nullable
                       as int,
+            forwarded: freezed == forwarded
+                ? _value.forwarded
+                : forwarded // ignore: cast_nullable_to_non_nullable
+                      as ChatForwardBundle?,
           )
           as $Val,
     );
+  }
+
+  /// Create a copy of ChatForwardEntry
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @pragma('vm:prefer-inline')
+  $ChatForwardBundleCopyWith<$Res>? get forwarded {
+    if (_value.forwarded == null) {
+      return null;
+    }
+
+    return $ChatForwardBundleCopyWith<$Res>(_value.forwarded!, (value) {
+      return _then(_value.copyWith(forwarded: value) as $Val);
+    });
   }
 }
 
@@ -2068,7 +2091,11 @@ abstract class _$$ChatForwardEntryImplCopyWith<$Res>
     String content,
     String createdAt,
     int msgType,
+    ChatForwardBundle? forwarded,
   });
+
+  @override
+  $ChatForwardBundleCopyWith<$Res>? get forwarded;
 }
 
 /// @nodoc
@@ -2090,6 +2117,7 @@ class __$$ChatForwardEntryImplCopyWithImpl<$Res>
     Object? content = null,
     Object? createdAt = null,
     Object? msgType = null,
+    Object? forwarded = freezed,
   }) {
     return _then(
       _$ChatForwardEntryImpl(
@@ -2113,6 +2141,10 @@ class __$$ChatForwardEntryImplCopyWithImpl<$Res>
             ? _value.msgType
             : msgType // ignore: cast_nullable_to_non_nullable
                   as int,
+        forwarded: freezed == forwarded
+            ? _value.forwarded
+            : forwarded // ignore: cast_nullable_to_non_nullable
+                  as ChatForwardBundle?,
       ),
     );
   }
@@ -2127,6 +2159,7 @@ class _$ChatForwardEntryImpl implements _ChatForwardEntry {
     required this.content,
     required this.createdAt,
     required this.msgType,
+    this.forwarded,
   });
 
   factory _$ChatForwardEntryImpl.fromJson(Map<String, dynamic> json) =>
@@ -2143,10 +2176,12 @@ class _$ChatForwardEntryImpl implements _ChatForwardEntry {
   final String createdAt;
   @override
   final int msgType;
+  @override
+  final ChatForwardBundle? forwarded;
 
   @override
   String toString() {
-    return 'ChatForwardEntry(senderName: $senderName, avatarUrl: $avatarUrl, content: $content, createdAt: $createdAt, msgType: $msgType)';
+    return 'ChatForwardEntry(senderName: $senderName, avatarUrl: $avatarUrl, content: $content, createdAt: $createdAt, msgType: $msgType, forwarded: $forwarded)';
   }
 
   @override
@@ -2161,7 +2196,9 @@ class _$ChatForwardEntryImpl implements _ChatForwardEntry {
             (identical(other.content, content) || other.content == content) &&
             (identical(other.createdAt, createdAt) ||
                 other.createdAt == createdAt) &&
-            (identical(other.msgType, msgType) || other.msgType == msgType));
+            (identical(other.msgType, msgType) || other.msgType == msgType) &&
+            (identical(other.forwarded, forwarded) ||
+                other.forwarded == forwarded));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
@@ -2173,6 +2210,7 @@ class _$ChatForwardEntryImpl implements _ChatForwardEntry {
     content,
     createdAt,
     msgType,
+    forwarded,
   );
 
   /// Create a copy of ChatForwardEntry
@@ -2199,6 +2237,7 @@ abstract class _ChatForwardEntry implements ChatForwardEntry {
     required final String content,
     required final String createdAt,
     required final int msgType,
+    final ChatForwardBundle? forwarded,
   }) = _$ChatForwardEntryImpl;
 
   factory _ChatForwardEntry.fromJson(Map<String, dynamic> json) =
@@ -2214,6 +2253,8 @@ abstract class _ChatForwardEntry implements ChatForwardEntry {
   String get createdAt;
   @override
   int get msgType;
+  @override
+  ChatForwardBundle? get forwarded;
 
   /// Create a copy of ChatForwardEntry
   /// with the given fields replaced by the non-null parameter values.

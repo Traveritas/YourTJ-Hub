@@ -127,26 +127,26 @@ func ForwardMessages(actor uint64, request ForwardRequest) (*ForwardResult, erro
 				if totalBytes > messages.MaxForwardBytes {
 					return errors.New("forward content too large")
 				}
-				if nested := forwardedPayload(message); nested != nil {
-					bundle.Messages = append(bundle.Messages, nested.Messages...)
-				} else {
-					if message.MsgType < 1 || message.MsgType > 3 {
-						return errors.New("unsupported forwarded message")
-					}
-					name := "Unknown user"
-					identity := identities[message.SenderId]
-					if identity.Name != "" {
-						name = identity.Name
-					}
-					bundle.Messages = append(bundle.Messages, messages.ForwardedEntry{SenderName: name, AvatarURL: identity.AvatarURL, Content: message.Content, CreatedAt: message.CreatedAt.Format(time.RFC3339), MsgType: message.MsgType})
+				name := "Unknown user"
+				identity := identities[message.SenderId]
+				if identity.Name != "" {
+					name = identity.Name
 				}
-			}
-			encoded, err := bundle.Encode()
-			if err != nil {
-				return err
+				entry := messages.ForwardedEntry{SenderName: name, AvatarURL: identity.AvatarURL, Content: message.Content, CreatedAt: message.CreatedAt.Format(time.RFC3339), MsgType: message.MsgType}
+				if nested := forwardedPayload(message); nested != nil {
+					entry.Forwarded = nested
+					entry.Content = nested.Text() // Readable fallback for older clients.
+				} else if message.MsgType < 1 || message.MsgType > 3 {
+					return errors.New("unsupported forwarded message")
+				}
+				bundle.Messages = append(bundle.Messages, entry)
 			}
 			outgoing := source
 			if request.Mode == "merged" {
+				encoded, err := bundle.Encode()
+				if err != nil {
+					return err
+				}
 				outgoing = []messages.Entity{{Content: encoded, MsgType: messages.ForwardType}}
 			}
 			for i, message := range outgoing {

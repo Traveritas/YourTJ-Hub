@@ -425,6 +425,19 @@ func TestChatMessagesHTTPContract(t *testing.T) {
 		if err := conn.Model(&messages.Entity{}).Where("id = ?", 9003).Update("msg_type", messages.ForwardType).Error; err != nil {
 			t.Fatal(err)
 		}
+		nested := &messages.ForwardedBundle{Version: 1, Messages: []messages.ForwardedEntry{{
+			SenderName: "Forwarder", AvatarURL: "/static/pic/6.webp", Content: bundle.Text(),
+			CreatedAt: "2026-08-15T09:02:00Z", MsgType: messages.ForwardType, Forwarded: bundle,
+		}}}
+		nestedEncoded, err := nested.Encode()
+		if err != nil {
+			t.Fatal(err)
+		}
+		createContractMessage(t, conn, 9004, 7701, viewer.Id, nestedEncoded, 0,
+			time.Date(2026, 8, 15, 9, 2, 0, 0, time.UTC))
+		if err := conn.Model(&messages.Entity{}).Where("id = ?", 9004).Update("msg_type", messages.ForwardType).Error; err != nil {
+			t.Fatal(err)
+		}
 		recorder := serveJSON(router, "/api/forum/chat/messages", `{"convId":7701}`, contractSessionToken(t, viewer))
 		if recorder.Code != http.StatusOK {
 			t.Fatalf("chat messages status = %d, want 200: %s", recorder.Code, recorder.Body.String())

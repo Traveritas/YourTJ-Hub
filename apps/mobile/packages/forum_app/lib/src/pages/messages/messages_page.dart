@@ -1784,6 +1784,9 @@ class _ConversationList extends StatelessWidget {
       itemBuilder: (BuildContext context, int index) {
         final ChatItemPayload conversation = filtered[index];
         final draft = drafts[conversation.peerId];
+        final messagePreview = stickerPreviewLabel(
+          conversation.lastMsg,
+        ).replaceAll(RegExp(r'\s+'), ' ').trim();
         return GfConversationRow(
           avatarUrl: resolveApiAssetUrl(conversation.peerAvatar),
           name: privateDisplayName(
@@ -1796,10 +1799,12 @@ class _ConversationList extends StatelessWidget {
               ? '${l10n.messagesDraftLabel} · ${stickerPreviewLabel(draft.value.text)}'
               : conversation.lastMsg.isEmpty
               ? l10n.messagesNoMessagesYet
-              : stickerPreviewLabel(conversation.lastMsg).replaceFirst(
-                  RegExp(r'^\[Chat history\]\s+'),
-                  '[${l10n.messageForwardHistory}] ',
-                ),
+              : messagePreview.startsWith('[Chat history]')
+              ? messagePreview.replaceAll(
+                  '[Chat history]',
+                  '[${l10n.messageForwardHistory}]',
+                )
+              : messagePreview,
           time: formatChatTime(conversation.lastMsgTime, l10n: l10n),
           unreadCount: conversation.unreadCount,
           onTap: conversation.convId == 0 && !canOpenNewConversation

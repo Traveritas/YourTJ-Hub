@@ -141,6 +141,7 @@ abstract class ChatForwardEntry with _$ChatForwardEntry {
     required String content,
     required String createdAt,
     required int msgType,
+    ChatForwardBundle? forwarded,
   }) = _ChatForwardEntry;
   factory ChatForwardEntry.fromJson(Map<String, dynamic> json) =>
       _$ChatForwardEntryFromJson(json);

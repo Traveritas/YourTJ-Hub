@@ -8,8 +8,9 @@ forwardChatMessages:
       that conversation. IDs are sorted chronologically; duplicates, missing IDs,
       unknown types, self-targets and blocked interactions fail without any delivery.
       Individual mode copies up to 10 original messages; merged mode stores one type-4
-      immutable snapshot. Nested snapshots are flattened in merged mode, bounded to
-      50 entries and 64 KiB. Current sensitive-word checks apply to new deliveries.
+      immutable snapshot. Nested snapshots remain independently readable history
+      cards, bounded to 4 bundle levels, 50 total entries (including cards) and
+      64 KiB per snapshot. Current sensitive-word checks include all nested text.
       Recipients cannot use snapshots to access source conversation IDs/history.
       Get-messages supplies a readable content fallback and an optional forwarded
       object for type 4, so older clients can still read the copy.

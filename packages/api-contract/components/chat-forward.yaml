@@ -4,11 +4,22 @@ ChatForwardEntry:
   properties:
     senderName: { type: string, description: Display name copied at forwarding time; no private notes. }
     avatarUrl: { type: string, description: Optional public avatar URL copied at forwarding time. Older snapshots omit it; clients use a circular placeholder. The URL does not grant access to the source conversation. }
-    content: { type: string }
+    content: { type: string, description: 'Readable fallback, including nested history text for older clients.' }
     createdAt: { type: string, format: date-time }
-    msgType: { type: integer, enum: [1, 2, 3] }
+    msgType: { type: integer, enum: [1, 2, 3, 4] }
+    forwarded: { $ref: '#/ChatForwardBundle' }
+  allOf:
+    - if:
+        properties:
+          msgType: { const: 4 }
+      then:
+        required: [forwarded]
+      else:
+        not:
+          required: [forwarded]
 ChatForwardBundle:
   type: object
+  description: Immutable copy tree; at most 4 bundle levels, 50 total entries including history cards, and 64 KiB of encoded content. Nested cards retain their own sender metadata and copied children.
   required: [version, messages]
   properties:
     version: { type: integer, enum: [1] }

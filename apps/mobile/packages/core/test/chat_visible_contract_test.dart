@@ -28,6 +28,23 @@ Map<String, dynamic> _fixture(String name) =>
 
 void main() {
   test(
+    'nested history and both avatar levels survive the wire/cache roundtrip',
+    () {
+      final result =
+          _fixture('chat-messages-success.json')['result']
+              as Map<String, dynamic>;
+      final response = ChatMessagesResponse.fromJson(result);
+      final parent = response.list.last.forwarded!.messages.single;
+      expect(parent.avatarUrl, '/static/pic/6.webp');
+      expect(parent.forwarded!.messages.single.avatarUrl, '/static/pic/3.webp');
+      expect(parent.forwarded!.messages.single.content, 'hello');
+      expect(
+        ChatMessagesResponse.fromJson(jsonDecode(jsonEncode(response))),
+        response,
+      );
+    },
+  );
+  test(
     'forward sends source IDs and stable identity and decodes its acknowledgement',
     () async {
       final dio = Dio();

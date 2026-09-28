@@ -16,7 +16,7 @@ const open = ref(false)
 <template>
   <button class="block w-full min-w-0 max-w-72 text-left" @click="open = true">
     <span class="block font-semibold">{{ t('messages.forwardHistory') }}</span>
-    <span v-for="(entry, index) in bundle.messages.slice(0, 3)" :key="index" class="mt-1 block truncate text-xs opacity-80">{{ entry.senderName }}: {{ stickerPreviewLabel(entry.content) }}</span>
+    <span v-for="(entry, index) in bundle.messages.slice(0, 3)" :key="index" class="mt-1 block truncate text-xs opacity-80">{{ entry.senderName }}: {{ entry.forwarded ? t('messages.forwardHistory') : stickerPreviewLabel(entry.content) }}</span>
     <span class="mt-2 flex items-center justify-between gap-4 border-t border-current/20 pt-2 text-xs">{{ t('messages.forwardCount', { count: bundle.messages.length }) }}<ChevronRight class="h-4 w-4" /></span>
   </button>
   <DialogRoot v-model:open="open">
@@ -32,9 +32,10 @@ const open = ref(false)
             <UserAvatar :src="entry.avatarUrl || '/static/pic/default-avatar.webp'" :alt="entry.senderName" class="h-8 w-8 shrink-0 rounded-full object-cover ring-1 ring-line" />
             <div class="min-w-0 max-w-[82%]">
             <div class="mb-1 break-words text-xs text-base-content/60">{{ entry.senderName }}</div>
-            <p class="whitespace-pre-wrap break-words bg-base-300 px-3 py-2 text-sm leading-relaxed shadow-sm [border-radius:var(--gf-radius-box)] md:px-4">
-              <template v-for="(segment, segmentIndex) in parseStickerSegments(entry.content, props.stickerUrls)" :key="segmentIndex"><img v-if="segment.type === 'sticker'" :src="segment.url" :alt="`[:sticker:${segment.name}:]`" class="inline-block h-14 w-14 max-w-full object-contain align-middle" loading="lazy" /><template v-else>{{ segment.text }}</template></template>
-            </p>
+            <div class="whitespace-pre-wrap break-words bg-base-300 px-3 py-2 text-sm leading-relaxed shadow-sm [border-radius:var(--gf-radius-box)] md:px-4">
+              <ForwardedMessageCard v-if="entry.forwarded" :bundle="entry.forwarded" :sticker-urls="props.stickerUrls" />
+              <template v-else><template v-for="(segment, segmentIndex) in parseStickerSegments(entry.content, props.stickerUrls)" :key="segmentIndex"><img v-if="segment.type === 'sticker'" :src="segment.url" :alt="`[:sticker:${segment.name}:]`" class="inline-block h-14 w-14 max-w-full object-contain align-middle" loading="lazy" /><template v-else>{{ segment.text }}</template></template></template>
+            </div>
             <time class="mt-1 block text-[11px] text-base-content/55">{{ formatDateTime(entry.createdAt) }}</time>
             </div>
           </article>
