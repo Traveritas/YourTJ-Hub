@@ -19,6 +19,7 @@ class GfMessageBubble extends StatelessWidget {
     this.showBubble = true,
     this.copyMessageLabel = 'Copy message',
     this.onLongPress,
+    this.interactionWrapper,
   });
 
   /// Optional key on the message body, excluding alignment and timestamp.
@@ -49,6 +50,10 @@ class GfMessageBubble extends StatelessWidget {
   /// [SelectionArea] so a long press wins over selection; dragging still
   /// scrolls or selects text.
   final VoidCallback? onLongPress;
+
+  /// Message gestures sit inside selection so touch actions can win their
+  /// gesture arena without intercepting mouse selection or vertical scrolling.
+  final Widget Function(Widget child)? interactionWrapper;
 
   @override
   Widget build(BuildContext context) {
@@ -94,6 +99,9 @@ class GfMessageBubble extends StatelessWidget {
             onLongPress: onLongPress,
             child: bubble,
           );
+        }
+        if (interactionWrapper != null) {
+          bubble = interactionWrapper!(bubble);
         }
         if (selectable) {
           bubble = SelectionArea(

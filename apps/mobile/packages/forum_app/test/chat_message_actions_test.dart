@@ -18,6 +18,7 @@ import 'package:ui_kit/ui_kit.dart';
 import 'chat_visible_read_test.dart' show pumpChat, VisibleChatRepository;
 import 'fixtures/page_fixtures.dart' show messagesPayloadJson, parsePayload;
 import 'pages_behavior_test.dart' show CountingPageRepository, makeChatMessage;
+import 'user_safety_test.dart' show Blocks;
 
 class Tokens implements TokenStorage {
   @override
@@ -232,6 +233,34 @@ Future<void> openActions(WidgetTester tester, Finder bubble) async {
 final Finder _preview = find.byKey(const Key('chat-reply-preview'));
 
 void main() {
+  testWidgets('chat more menu owns block and unblock confirmation', (
+    tester,
+  ) async {
+    final blocks = Blocks();
+    await pumpChat(
+      tester,
+      messages: [makeChatMessage(1)],
+      overrides: [userRepositoryProvider.overrideWithValue(blocks)],
+    );
+    expect(find.byTooltip('Block user'), findsNothing);
+    await tester.tap(find.byTooltip('More options'));
+    await tester.pumpAndSettle();
+    expect(blocks.writes, isEmpty);
+    await tester.tap(find.text('Block user'));
+    await tester.pumpAndSettle();
+    expect(blocks.writes, isEmpty);
+    await tester.tap(find.widgetWithText(FilledButton, 'Block user'));
+    await tester.pumpAndSettle();
+    expect(blocks.writes, [true]);
+    await tester.tap(find.byTooltip('More options'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Unblock user'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.widgetWithText(FilledButton, 'Unblock user'));
+    await tester.pumpAndSettle();
+    expect(blocks.writes, [true, false]);
+  });
+
   setUp(() {
     SharedPreferences.setMockInitialValues({});
     FlutterSecureStorage.setMockInitialValues({});
@@ -301,6 +330,96 @@ void main() {
     ]);
     await dispose(tester);
   });
+
+  testWidgets(
+    'left swipe replies once and focuses the unchanged draft',
+    (tester) async {
+      await pumpActions(tester);
+      final input = find.descendant(
+        of: find.byType(GfChatInput),
+        matching: find.byType(TextField),
+      );
+      await tester.enterText(input, 'draft to preserve');
+      await tester.pumpAndSettle();
+      await tester.drag(find.text('消息 1'), const Offset(-28, 0));
+      await tester.pumpAndSettle();
+      expect(_preview, findsNothing);
+      await tester.drag(find.text('消息 1'), const Offset(95, 0));
+      await tester.pumpAndSettle();
+      expect(_preview, findsNothing);
+      final gesture = await tester.startGesture(
+        tester.getCenter(find.text('消息 1')),
+      );
+      // iOS may coalesce a fast swipe into a single move before pointer-up.
+      await gesture.moveBy(const Offset(-100, 0));
+      await gesture.up();
+      await tester.pumpAndSettle();
+      expect(_preview, findsOneWidget);
+      expect(
+        tester.widget<TextField>(input).controller!.text,
+        'draft to preserve',
+      );
+      expect(tester.widget<TextField>(input).focusNode!.hasFocus, isTrue);
+      await dispose(tester);
+    },
+    variant: TargetPlatformVariant({
+      TargetPlatform.iOS,
+      TargetPlatform.android,
+    }),
+  );
+
+  testWidgets('multi-select cancels with system back and preserves the draft', (
+    tester,
+  ) async {
+    await pumpActions(
+      tester,
+      messages: [makeChatMessage(1), makeChatMessage(2)],
+    );
+    final input = find.descendant(
+      of: find.byType(GfChatInput),
+      matching: find.byType(TextField),
+    );
+    await tester.enterText(input, 'draft survives selection');
+    await openActions(tester, find.text('消息 1'));
+    await tester.tap(find.text('Select messages'));
+    await tester.pumpAndSettle();
+    expect(find.byType(Checkbox), findsNWidgets(2));
+    expect(find.byType(GfChatInput), findsNothing);
+    await tester.tap(find.text('消息 2'));
+    await tester.pump();
+    expect(
+      tester.widgetList<Checkbox>(find.byType(Checkbox)).every((c) => c.value!),
+      isTrue,
+    );
+    await tester.binding.handlePopRoute();
+    await tester.pumpAndSettle();
+    expect(find.byType(Checkbox), findsNothing);
+    expect(
+      tester.widget<TextField>(input).controller!.text,
+      'draft survives selection',
+    );
+    await dispose(tester);
+  });
+
+  testWidgets(
+    'recipient selection fits narrow screens with a search keyboard and large text',
+    (tester) async {
+      await pumpActions(tester);
+      await tester.binding.setSurfaceSize(const Size(320, 560));
+      tester.platformDispatcher.textScaleFactorTestValue = 2;
+      addTearDown(tester.platformDispatcher.clearTextScaleFactorTestValue);
+      addTearDown(tester.view.resetViewInsets);
+      await openActions(tester, find.text('消息 1'));
+      await tester.tap(find.text('Forward'));
+      await tester.pumpAndSettle();
+      tester.view.viewInsets = const FakeViewPadding(bottom: 240);
+      await tester.pumpAndSettle();
+      expect(tester.takeException(), isNull);
+      expect(find.byType(FilledButton).last.hitTestable(), findsOneWidget);
+      tester.view.resetViewInsets();
+      await dispose(tester);
+    },
+  );
 
   testWidgets('copying a message writes the whole content to the clipboard', (
     tester,
@@ -632,11 +751,7 @@ void main() {
     await openActions(tester, find.text('消息 1'));
     expect(find.bySemanticsLabel('Reply'), findsOneWidget);
     expect(find.bySemanticsLabel('Report message'), findsOneWidget);
-    final node = tester.getSemantics(
-      find
-          .ancestor(of: find.text('Reply'), matching: find.byType(ListTile))
-          .first,
-    );
+    final node = tester.getSemantics(find.bySemanticsLabel('Reply'));
     expect(node.getSemanticsData().hasAction(SemanticsAction.tap), isTrue);
     handle.dispose();
     await dispose(tester);

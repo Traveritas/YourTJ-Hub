@@ -10,6 +10,7 @@ import { parseStickerSegments, stickerPreviewLabel } from '@/site/utils/sticker-
 import { useResolvedStickers } from '@/site/composables/useResolvedStickers'
 import { useUnreadStatus } from '@/runtime/unread-status'
 import UserAvatar from '@/site/components/UserAvatar.vue'
+import ForwardedMessageCard from '@/site/components/ForwardedMessageCard.vue'
 import type { ChatItemPayload, LayoutPayload, MessagesPageProps, UserConnectionPayload } from '@gooseforum/client'
 import { useI18n } from 'vue-i18n'
 
@@ -53,6 +54,11 @@ watch(
 /** 气泡分段：识别到的启用表情包渲染为内联图，未知/停用 token 保持原文（MADR 0030） */
 function messageSegments(content: string) {
   return parseStickerSegments(content, stickerUrlMap.value)
+}
+
+// Localize the stable legacy fallback marker without changing the stored copy.
+function conversationPreview(content: string) {
+  return stickerPreviewLabel(content).replace(/^\[Chat history\]\s+/, `[${t('messages.forwardHistory')}] `)
 }
 const messagePageLimit = 30
 const emojis = ['😀', '😂', '😍', '😊', '😭', '👍', '🙏', '🔥', '✨', '🎉', '🤔', '👀', '❤️', '🙌', '👏', '✅']
@@ -320,7 +326,7 @@ async function startChat(user: Pick<UserConnectionPayload, 'id' | 'username' | '
                 </div>
                 <div class="mt-1 flex items-center gap-2">
                   <p class="min-w-0 flex-1 truncate text-sm" :class="conversation.unreadCount ? 'font-semibold text-base-content' : 'text-base-content/55'">
-                    {{ stickerPreviewLabel(conversation.lastMsg) || t('messages.noMessagesYet') }}
+                    {{ conversationPreview(conversation.lastMsg) || t('messages.noMessagesYet') }}
                   </p>
                 </div>
               </div>
@@ -377,7 +383,8 @@ async function startChat(user: Pick<UserConnectionPayload, 'id' | 'username' | '
                         class="whitespace-pre-wrap break-words px-3 py-2 text-sm leading-relaxed shadow-sm [border-radius:var(--gf-radius-box)] md:px-4"
                         :class="item.message.isSelf ? 'bg-primary text-primary-content' : 'bg-base-300 text-base-content'"
                       >
-                        <template v-for="(segment, index) in messageSegments(item.message.content)" :key="index">
+                        <ForwardedMessageCard v-if="item.message.forwarded" :bundle="item.message.forwarded" :sticker-urls="stickerUrlMap" />
+                        <template v-else><template v-for="(segment, index) in messageSegments(item.message.content)" :key="index">
                           <img
                             v-if="segment.type === 'sticker'"
                             :src="segment.url"
@@ -386,7 +393,7 @@ async function startChat(user: Pick<UserConnectionPayload, 'id' | 'username' | '
                             loading="lazy"
                           />
                           <template v-else>{{ segment.text }}</template>
-                        </template>
+                        </template></template>
                       </div>
                       <time v-if="item.showTimestamp" class="mt-1 block text-[11px] text-base-content/55" :class="item.message.isSelf ? 'text-right' : ''">{{ formatChatClock(item.message.createdAt) }}</time>
                     </div>

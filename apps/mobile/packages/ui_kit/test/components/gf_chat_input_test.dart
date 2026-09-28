@@ -6,6 +6,26 @@ import 'package:ui_kit/ui_kit.dart';
 import '../helpers.dart';
 
 void main() {
+  testWidgets(
+    'external reply focus closes accessories and stays caller owned',
+    (tester) async {
+      final focus = FocusNode();
+      await tester.pumpWidget(
+        gfApp(GfChatInput(focusNode: focus, onSend: (_) {})),
+      );
+      await tester.tap(find.byTooltip('Emoji'));
+      await tester.pumpAndSettle();
+      expect(find.text('😀'), findsOneWidget);
+      focus.requestFocus();
+      await tester.pumpAndSettle();
+      expect(find.text('😀'), findsNothing);
+      expect(focus.hasFocus, isTrue);
+      await tester.pumpWidget(const SizedBox());
+      focus.addListener(() {});
+      focus.dispose();
+    },
+  );
+
   testWidgets('sticker search keyboard keeps draft and send control visible', (
     tester,
   ) async {

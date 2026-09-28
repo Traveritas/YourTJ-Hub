@@ -13,6 +13,7 @@ class GfChatInput extends StatefulWidget {
     super.key,
     required this.onSend,
     this.controller,
+    this.focusNode,
     this.hintText,
     this.sendLabel,
     this.enterHint,
@@ -29,6 +30,7 @@ class GfChatInput extends StatefulWidget {
 
   final ValueChanged<String> onSend;
   final TextEditingController? controller;
+  final FocusNode? focusNode;
   final String? hintText;
   final String? sendLabel;
   final String? enterHint;
@@ -82,7 +84,7 @@ class _GfChatInputState extends State<GfChatInput> with WidgetsBindingObserver {
 
   late TextEditingController _controller =
       widget.controller ?? TextEditingController();
-  final FocusNode _inputFocus = FocusNode();
+  late FocusNode _inputFocus = widget.focusNode ?? FocusNode();
   final FocusNode _accessoryFocus = FocusNode();
   TextSelection? _lastSelection;
   bool _emojiOpen = false;
@@ -102,7 +104,11 @@ class _GfChatInputState extends State<GfChatInput> with WidgetsBindingObserver {
   }
 
   void _handleFocusChanged() {
-    if (mounted) setState(() {});
+    if (mounted) {
+      setState(() {
+        if (_inputFocus.hasFocus) _emojiOpen = false;
+      });
+    }
   }
 
   void _rememberSelection() {
@@ -130,6 +136,12 @@ class _GfChatInputState extends State<GfChatInput> with WidgetsBindingObserver {
       _rememberSelection();
       _controller.addListener(_handleTextChanged);
     }
+    if (oldWidget.focusNode != widget.focusNode) {
+      _inputFocus.removeListener(_handleFocusChanged);
+      if (oldWidget.focusNode == null) _inputFocus.dispose();
+      _inputFocus = widget.focusNode ?? FocusNode();
+      _inputFocus.addListener(_handleFocusChanged);
+    }
     if (!widget.enabled) _emojiOpen = false;
   }
 
@@ -139,7 +151,7 @@ class _GfChatInputState extends State<GfChatInput> with WidgetsBindingObserver {
     _controller.removeListener(_handleTextChanged);
     if (widget.controller == null) _controller.dispose();
     _inputFocus.removeListener(_handleFocusChanged);
-    _inputFocus.dispose();
+    if (widget.focusNode == null) _inputFocus.dispose();
     _accessoryFocus.dispose();
     super.dispose();
   }

@@ -579,3 +579,17 @@ stored content. Deleted/blocked replies, retained deletion tombstones, and hidde
 parent topics (including hidden first posts) are not hydrated;
 stored event snapshots and read-state semantics are unchanged. OpenAPI examples and the shared
 notification fixture cover the enriched response without introducing fields.
+
+### 私信转发快照
+
+`Current`: `/api/forum/chat/forward` 在一次收件人事务内核验源会话成员、全部消息归属与互动权限，
+复用普通消息写入、未读计数和提交后的实时失效提示。`individual` 复制正文，`merged` 将版本 1
+的有界快照写入现有 `messages.content`，`msgType=4`；不新增数据库列。普通 send 的类型仍为 1/2/3。
+读取返回可读 `content` 及可选 `forwarded`，旧客户端可显示文字，新 Web/Flutter 客户端可显示卡片。
+快照条目的可选 `avatarUrl` 保存转发时的公开头像 URL；旧快照省略该字段，客户端显示圆形占位。
+OpenAPI、TypeScript 和 Dart 镜像同步维护，路由覆盖包含此操作。
+
+`Current`: 操作标识绑定操作者、规范排序的源消息 ID、收件人和方式。每位收件人独立提交/重试，
+避免跨收件人的部分成功被伪装成整批失败。个别消息插入失败会回滚该收件人的整批记录、会话与计数。
+请求体最多 8 KiB；展开后的快照最多 50 条、编码后 64 KiB。副本的隐私、生命周期和客户端队列边界见
+[决策 0043](../decisions/0043-private-message-forward-snapshots.md)。

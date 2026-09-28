@@ -2834,4 +2834,93 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get reportOther => '其他';
+
+  @override
+  String get messageActions => '消息操作';
+
+  @override
+  String get messageForwardIndividualLimit => '超过 10 条消息时使用合并转发。';
+
+  @override
+  String get messageForward => '转发';
+
+  @override
+  String get messageSelect => '多选';
+
+  @override
+  String messagesSelected(int count) {
+    return '已选 $count 条';
+  }
+
+  @override
+  String get messageForwardTitle => '转发消息';
+
+  @override
+  String get messageForwardIndividual => '逐条转发';
+
+  @override
+  String get messageForwardMerged => '合并转发';
+
+  @override
+  String get messageForwardExplanation => '所选消息会复制给接收者；合并转发会附上原发送者名称和时间。';
+
+  @override
+  String messageForwardTargets(int count) {
+    return '转发给 $count 人';
+  }
+
+  @override
+  String get messageForwardConfirm => '确认转发';
+
+  @override
+  String get messageForwardSuccess => '已发送';
+
+  @override
+  String get messageForwardFailed => '未发送';
+
+  @override
+  String get messageForwardPending => '待发送';
+
+  @override
+  String get messageForwardSending => '正在发送';
+
+  @override
+  String get messageForwardRetry => '重试未完成的转发';
+
+  @override
+  String get messageForwardResume => '继续转发';
+
+  @override
+  String messageForwardLimit(int count) {
+    return '最多选择 $count 条消息';
+  }
+
+  @override
+  String messageForwardRecipientLimit(int count) {
+    return '最多选择 $count 位接收者';
+  }
+
+  @override
+  String get messageForwardHistory => '聊天记录';
+
+  @override
+  String messageForwardCount(int count) {
+    return '共 $count 条消息';
+  }
+
+  @override
+  String get messageForwardEmptyRecipients => '暂无可转发的会话或联系人';
+
+  @override
+  String get messageForwardCancelRemaining => '放弃剩余转发';
+
+  @override
+  String get messageForwardAbandonNotice =>
+      '已发送的消息会保留。未确认送达的消息可能已被接收；再次新建转发可能产生重复。';
+
+  @override
+  String get messageForwardSearch => '搜索会话或联系人';
+
+  @override
+  String get messageForwardChooseTargets => '选择接收者';
 }

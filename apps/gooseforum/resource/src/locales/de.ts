@@ -1871,6 +1871,10 @@ export default {
     },
   },
   messages: {
+    forwardHistory: 'Chatverlauf',
+    forwardCount: '{count} Nachrichten',
+    forwardClose: 'Chatverlauf schließen',
+
     title: 'Nachrichten',
     newMessage: 'Neue Nachricht',
     searchConversations: 'Unterhaltungen suchen',

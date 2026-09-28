@@ -2955,4 +2955,96 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get reportOther => 'Other';
+
+  @override
+  String get messageActions => 'Message actions';
+
+  @override
+  String get messageForwardIndividualLimit =>
+      'Use merged history for more than 10 messages.';
+
+  @override
+  String get messageForward => 'Forward';
+
+  @override
+  String get messageSelect => 'Select messages';
+
+  @override
+  String messagesSelected(int count) {
+    return '$count selected';
+  }
+
+  @override
+  String get messageForwardTitle => 'Forward messages';
+
+  @override
+  String get messageForwardIndividual => 'Individually';
+
+  @override
+  String get messageForwardMerged => 'As chat history';
+
+  @override
+  String get messageForwardExplanation =>
+      'Selected messages are copied to recipients. Merged history includes original sender names and times.';
+
+  @override
+  String messageForwardTargets(int count) {
+    return 'Forward to $count people';
+  }
+
+  @override
+  String get messageForwardConfirm => 'Confirm forwarding';
+
+  @override
+  String get messageForwardSuccess => 'Sent';
+
+  @override
+  String get messageForwardFailed => 'Not sent';
+
+  @override
+  String get messageForwardPending => 'Pending';
+
+  @override
+  String get messageForwardSending => 'Sending';
+
+  @override
+  String get messageForwardRetry => 'Retry unfinished deliveries';
+
+  @override
+  String get messageForwardResume => 'Continue forwarding';
+
+  @override
+  String messageForwardLimit(int count) {
+    return 'Select up to $count messages';
+  }
+
+  @override
+  String messageForwardRecipientLimit(int count) {
+    return 'Select up to $count recipients';
+  }
+
+  @override
+  String get messageForwardHistory => 'Chat history';
+
+  @override
+  String messageForwardCount(int count) {
+    return '$count messages';
+  }
+
+  @override
+  String get messageForwardEmptyRecipients =>
+      'No conversations or contacts available';
+
+  @override
+  String get messageForwardCancelRemaining => 'Discard remaining deliveries';
+
+  @override
+  String get messageForwardAbandonNotice =>
+      'Sent messages remain. Unacknowledged messages may already be delivered; starting a new forward can duplicate them.';
+
+  @override
+  String get messageForwardSearch => 'Search conversations or contacts';
+
+  @override
+  String get messageForwardChooseTargets => 'Choose recipients';
 }

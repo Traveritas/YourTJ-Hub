@@ -2862,4 +2862,94 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get reportOther => 'その他';
+
+  @override
+  String get messageActions => 'メッセージ操作';
+
+  @override
+  String get messageForwardIndividualLimit => '10 件を超える場合はまとめて転送します。';
+
+  @override
+  String get messageForward => '転送';
+
+  @override
+  String get messageSelect => '複数選択';
+
+  @override
+  String messagesSelected(int count) {
+    return '$count 件選択';
+  }
+
+  @override
+  String get messageForwardTitle => 'メッセージを転送';
+
+  @override
+  String get messageForwardIndividual => '個別に転送';
+
+  @override
+  String get messageForwardMerged => 'まとめて転送';
+
+  @override
+  String get messageForwardExplanation =>
+      '選択したメッセージを受信者にコピーします。まとめた履歴には元の送信者名と日時が含まれます。';
+
+  @override
+  String messageForwardTargets(int count) {
+    return '$count 人に転送';
+  }
+
+  @override
+  String get messageForwardConfirm => '転送の確認';
+
+  @override
+  String get messageForwardSuccess => '送信済み';
+
+  @override
+  String get messageForwardFailed => '未送信';
+
+  @override
+  String get messageForwardPending => '送信待ち';
+
+  @override
+  String get messageForwardSending => '送信中';
+
+  @override
+  String get messageForwardRetry => '未完了の転送を再試行';
+
+  @override
+  String get messageForwardResume => '転送を続ける';
+
+  @override
+  String messageForwardLimit(int count) {
+    return '最大 $count 件選択できます';
+  }
+
+  @override
+  String messageForwardRecipientLimit(int count) {
+    return '最大 $count 人選択できます';
+  }
+
+  @override
+  String get messageForwardHistory => 'チャット履歴';
+
+  @override
+  String messageForwardCount(int count) {
+    return '$count 件のメッセージ';
+  }
+
+  @override
+  String get messageForwardEmptyRecipients => '転送先の会話や連絡先がありません';
+
+  @override
+  String get messageForwardCancelRemaining => '残りの転送を破棄';
+
+  @override
+  String get messageForwardAbandonNotice =>
+      '送信済みのメッセージは残ります。未確認のメッセージも届いている可能性があり、新しい転送では重複する場合があります。';
+
+  @override
+  String get messageForwardSearch => '会話や連絡先を検索';
+
+  @override
+  String get messageForwardChooseTargets => '受信者を選択';
 }

@@ -1,5 +1,7 @@
 package vo
 
+import "github.com/YourTongji/YourTJ-Hub/apps/gooseforum/app/models/chat/messages"
+
 // ChatItemVo summarizes one conversation in the messages list.
 type ChatItemVo struct {
 	Id           uint64 `json:"id"` // user_chat_config id
@@ -17,11 +19,12 @@ type ChatItemVo struct {
 
 // MessageVo represents one chat message decorated for the current viewer.
 type MessageVo struct {
-	Id        uint64 `json:"id"`
-	SenderId  uint64 `json:"senderId"`
-	Content   string `json:"content"`
-	MsgType   int8   `json:"msgType"`
-	IsRead    int    `json:"isRead"`
-	CreatedAt string `json:"createdAt"`
-	IsSelf    bool   `json:"isSelf"`
+	Forwarded *messages.ForwardedBundle `json:"forwarded,omitempty"`
+	Id        uint64                    `json:"id"`
+	SenderId  uint64                    `json:"senderId"`
+	Content   string                    `json:"content"`
+	MsgType   int8                      `json:"msgType"`
+	IsRead    int                       `json:"isRead"`
+	CreatedAt string                    `json:"createdAt"`
+	IsSelf    bool                      `json:"isSelf"`
 }

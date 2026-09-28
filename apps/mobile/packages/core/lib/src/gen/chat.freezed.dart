@@ -594,6 +594,7 @@ mixin _$ChatMessagePayload {
   int get isRead => throw _privateConstructorUsedError;
   String get createdAt => throw _privateConstructorUsedError;
   bool get isSelf => throw _privateConstructorUsedError;
+  ChatForwardBundle? get forwarded => throw _privateConstructorUsedError;
 
   /// Serializes this ChatMessagePayload to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
@@ -620,7 +621,10 @@ abstract class $ChatMessagePayloadCopyWith<$Res> {
     int isRead,
     String createdAt,
     bool isSelf,
+    ChatForwardBundle? forwarded,
   });
+
+  $ChatForwardBundleCopyWith<$Res>? get forwarded;
 }
 
 /// @nodoc
@@ -645,6 +649,7 @@ class _$ChatMessagePayloadCopyWithImpl<$Res, $Val extends ChatMessagePayload>
     Object? isRead = null,
     Object? createdAt = null,
     Object? isSelf = null,
+    Object? forwarded = freezed,
   }) {
     return _then(
       _value.copyWith(
@@ -676,9 +681,27 @@ class _$ChatMessagePayloadCopyWithImpl<$Res, $Val extends ChatMessagePayload>
                 ? _value.isSelf
                 : isSelf // ignore: cast_nullable_to_non_nullable
                       as bool,
+            forwarded: freezed == forwarded
+                ? _value.forwarded
+                : forwarded // ignore: cast_nullable_to_non_nullable
+                      as ChatForwardBundle?,
           )
           as $Val,
     );
+  }
+
+  /// Create a copy of ChatMessagePayload
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @pragma('vm:prefer-inline')
+  $ChatForwardBundleCopyWith<$Res>? get forwarded {
+    if (_value.forwarded == null) {
+      return null;
+    }
+
+    return $ChatForwardBundleCopyWith<$Res>(_value.forwarded!, (value) {
+      return _then(_value.copyWith(forwarded: value) as $Val);
+    });
   }
 }
 
@@ -699,7 +722,11 @@ abstract class _$$ChatMessagePayloadImplCopyWith<$Res>
     int isRead,
     String createdAt,
     bool isSelf,
+    ChatForwardBundle? forwarded,
   });
+
+  @override
+  $ChatForwardBundleCopyWith<$Res>? get forwarded;
 }
 
 /// @nodoc
@@ -723,6 +750,7 @@ class __$$ChatMessagePayloadImplCopyWithImpl<$Res>
     Object? isRead = null,
     Object? createdAt = null,
     Object? isSelf = null,
+    Object? forwarded = freezed,
   }) {
     return _then(
       _$ChatMessagePayloadImpl(
@@ -754,6 +782,10 @@ class __$$ChatMessagePayloadImplCopyWithImpl<$Res>
             ? _value.isSelf
             : isSelf // ignore: cast_nullable_to_non_nullable
                   as bool,
+        forwarded: freezed == forwarded
+            ? _value.forwarded
+            : forwarded // ignore: cast_nullable_to_non_nullable
+                  as ChatForwardBundle?,
       ),
     );
   }
@@ -770,6 +802,7 @@ class _$ChatMessagePayloadImpl implements _ChatMessagePayload {
     required this.isRead,
     required this.createdAt,
     required this.isSelf,
+    this.forwarded,
   });
 
   factory _$ChatMessagePayloadImpl.fromJson(Map<String, dynamic> json) =>
@@ -789,10 +822,12 @@ class _$ChatMessagePayloadImpl implements _ChatMessagePayload {
   final String createdAt;
   @override
   final bool isSelf;
+  @override
+  final ChatForwardBundle? forwarded;
 
   @override
   String toString() {
-    return 'ChatMessagePayload(id: $id, senderId: $senderId, content: $content, msgType: $msgType, isRead: $isRead, createdAt: $createdAt, isSelf: $isSelf)';
+    return 'ChatMessagePayload(id: $id, senderId: $senderId, content: $content, msgType: $msgType, isRead: $isRead, createdAt: $createdAt, isSelf: $isSelf, forwarded: $forwarded)';
   }
 
   @override
@@ -808,7 +843,9 @@ class _$ChatMessagePayloadImpl implements _ChatMessagePayload {
             (identical(other.isRead, isRead) || other.isRead == isRead) &&
             (identical(other.createdAt, createdAt) ||
                 other.createdAt == createdAt) &&
-            (identical(other.isSelf, isSelf) || other.isSelf == isSelf));
+            (identical(other.isSelf, isSelf) || other.isSelf == isSelf) &&
+            (identical(other.forwarded, forwarded) ||
+                other.forwarded == forwarded));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
@@ -822,6 +859,7 @@ class _$ChatMessagePayloadImpl implements _ChatMessagePayload {
     isRead,
     createdAt,
     isSelf,
+    forwarded,
   );
 
   /// Create a copy of ChatMessagePayload
@@ -850,6 +888,7 @@ abstract class _ChatMessagePayload implements ChatMessagePayload {
     required final int isRead,
     required final String createdAt,
     required final bool isSelf,
+    final ChatForwardBundle? forwarded,
   }) = _$ChatMessagePayloadImpl;
 
   factory _ChatMessagePayload.fromJson(Map<String, dynamic> json) =
@@ -869,6 +908,8 @@ abstract class _ChatMessagePayload implements ChatMessagePayload {
   String get createdAt;
   @override
   bool get isSelf;
+  @override
+  ChatForwardBundle? get forwarded;
 
   /// Create a copy of ChatMessagePayload
   /// with the given fields replaced by the non-null parameter values.
@@ -1740,4 +1781,630 @@ abstract class _ChatMessageReadStatesResult
   @JsonKey(includeFromJson: false, includeToJson: false)
   _$$ChatMessageReadStatesResultImplCopyWith<_$ChatMessageReadStatesResultImpl>
   get copyWith => throw _privateConstructorUsedError;
+}
+
+ChatForwardBundle _$ChatForwardBundleFromJson(Map<String, dynamic> json) {
+  return _ChatForwardBundle.fromJson(json);
+}
+
+/// @nodoc
+mixin _$ChatForwardBundle {
+  int get version => throw _privateConstructorUsedError;
+  List<ChatForwardEntry> get messages => throw _privateConstructorUsedError;
+
+  /// Serializes this ChatForwardBundle to a JSON map.
+  Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
+
+  /// Create a copy of ChatForwardBundle
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  $ChatForwardBundleCopyWith<ChatForwardBundle> get copyWith =>
+      throw _privateConstructorUsedError;
+}
+
+/// @nodoc
+abstract class $ChatForwardBundleCopyWith<$Res> {
+  factory $ChatForwardBundleCopyWith(
+    ChatForwardBundle value,
+    $Res Function(ChatForwardBundle) then,
+  ) = _$ChatForwardBundleCopyWithImpl<$Res, ChatForwardBundle>;
+  @useResult
+  $Res call({int version, List<ChatForwardEntry> messages});
+}
+
+/// @nodoc
+class _$ChatForwardBundleCopyWithImpl<$Res, $Val extends ChatForwardBundle>
+    implements $ChatForwardBundleCopyWith<$Res> {
+  _$ChatForwardBundleCopyWithImpl(this._value, this._then);
+
+  // ignore: unused_field
+  final $Val _value;
+  // ignore: unused_field
+  final $Res Function($Val) _then;
+
+  /// Create a copy of ChatForwardBundle
+  /// with the given fields replaced by the non-null parameter values.
+  @pragma('vm:prefer-inline')
+  @override
+  $Res call({Object? version = null, Object? messages = null}) {
+    return _then(
+      _value.copyWith(
+            version: null == version
+                ? _value.version
+                : version // ignore: cast_nullable_to_non_nullable
+                      as int,
+            messages: null == messages
+                ? _value.messages
+                : messages // ignore: cast_nullable_to_non_nullable
+                      as List<ChatForwardEntry>,
+          )
+          as $Val,
+    );
+  }
+}
+
+/// @nodoc
+abstract class _$$ChatForwardBundleImplCopyWith<$Res>
+    implements $ChatForwardBundleCopyWith<$Res> {
+  factory _$$ChatForwardBundleImplCopyWith(
+    _$ChatForwardBundleImpl value,
+    $Res Function(_$ChatForwardBundleImpl) then,
+  ) = __$$ChatForwardBundleImplCopyWithImpl<$Res>;
+  @override
+  @useResult
+  $Res call({int version, List<ChatForwardEntry> messages});
+}
+
+/// @nodoc
+class __$$ChatForwardBundleImplCopyWithImpl<$Res>
+    extends _$ChatForwardBundleCopyWithImpl<$Res, _$ChatForwardBundleImpl>
+    implements _$$ChatForwardBundleImplCopyWith<$Res> {
+  __$$ChatForwardBundleImplCopyWithImpl(
+    _$ChatForwardBundleImpl _value,
+    $Res Function(_$ChatForwardBundleImpl) _then,
+  ) : super(_value, _then);
+
+  /// Create a copy of ChatForwardBundle
+  /// with the given fields replaced by the non-null parameter values.
+  @pragma('vm:prefer-inline')
+  @override
+  $Res call({Object? version = null, Object? messages = null}) {
+    return _then(
+      _$ChatForwardBundleImpl(
+        version: null == version
+            ? _value.version
+            : version // ignore: cast_nullable_to_non_nullable
+                  as int,
+        messages: null == messages
+            ? _value._messages
+            : messages // ignore: cast_nullable_to_non_nullable
+                  as List<ChatForwardEntry>,
+      ),
+    );
+  }
+}
+
+/// @nodoc
+@JsonSerializable()
+class _$ChatForwardBundleImpl implements _ChatForwardBundle {
+  const _$ChatForwardBundleImpl({
+    required this.version,
+    required final List<ChatForwardEntry> messages,
+  }) : _messages = messages;
+
+  factory _$ChatForwardBundleImpl.fromJson(Map<String, dynamic> json) =>
+      _$$ChatForwardBundleImplFromJson(json);
+
+  @override
+  final int version;
+  final List<ChatForwardEntry> _messages;
+  @override
+  List<ChatForwardEntry> get messages {
+    if (_messages is EqualUnmodifiableListView) return _messages;
+    // ignore: implicit_dynamic_type
+    return EqualUnmodifiableListView(_messages);
+  }
+
+  @override
+  String toString() {
+    return 'ChatForwardBundle(version: $version, messages: $messages)';
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        (other.runtimeType == runtimeType &&
+            other is _$ChatForwardBundleImpl &&
+            (identical(other.version, version) || other.version == version) &&
+            const DeepCollectionEquality().equals(other._messages, _messages));
+  }
+
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @override
+  int get hashCode => Object.hash(
+    runtimeType,
+    version,
+    const DeepCollectionEquality().hash(_messages),
+  );
+
+  /// Create a copy of ChatForwardBundle
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @override
+  @pragma('vm:prefer-inline')
+  _$$ChatForwardBundleImplCopyWith<_$ChatForwardBundleImpl> get copyWith =>
+      __$$ChatForwardBundleImplCopyWithImpl<_$ChatForwardBundleImpl>(
+        this,
+        _$identity,
+      );
+
+  @override
+  Map<String, dynamic> toJson() {
+    return _$$ChatForwardBundleImplToJson(this);
+  }
+}
+
+abstract class _ChatForwardBundle implements ChatForwardBundle {
+  const factory _ChatForwardBundle({
+    required final int version,
+    required final List<ChatForwardEntry> messages,
+  }) = _$ChatForwardBundleImpl;
+
+  factory _ChatForwardBundle.fromJson(Map<String, dynamic> json) =
+      _$ChatForwardBundleImpl.fromJson;
+
+  @override
+  int get version;
+  @override
+  List<ChatForwardEntry> get messages;
+
+  /// Create a copy of ChatForwardBundle
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  _$$ChatForwardBundleImplCopyWith<_$ChatForwardBundleImpl> get copyWith =>
+      throw _privateConstructorUsedError;
+}
+
+ChatForwardEntry _$ChatForwardEntryFromJson(Map<String, dynamic> json) {
+  return _ChatForwardEntry.fromJson(json);
+}
+
+/// @nodoc
+mixin _$ChatForwardEntry {
+  String get senderName => throw _privateConstructorUsedError;
+  String get avatarUrl => throw _privateConstructorUsedError;
+  String get content => throw _privateConstructorUsedError;
+  String get createdAt => throw _privateConstructorUsedError;
+  int get msgType => throw _privateConstructorUsedError;
+
+  /// Serializes this ChatForwardEntry to a JSON map.
+  Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
+
+  /// Create a copy of ChatForwardEntry
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  $ChatForwardEntryCopyWith<ChatForwardEntry> get copyWith =>
+      throw _privateConstructorUsedError;
+}
+
+/// @nodoc
+abstract class $ChatForwardEntryCopyWith<$Res> {
+  factory $ChatForwardEntryCopyWith(
+    ChatForwardEntry value,
+    $Res Function(ChatForwardEntry) then,
+  ) = _$ChatForwardEntryCopyWithImpl<$Res, ChatForwardEntry>;
+  @useResult
+  $Res call({
+    String senderName,
+    String avatarUrl,
+    String content,
+    String createdAt,
+    int msgType,
+  });
+}
+
+/// @nodoc
+class _$ChatForwardEntryCopyWithImpl<$Res, $Val extends ChatForwardEntry>
+    implements $ChatForwardEntryCopyWith<$Res> {
+  _$ChatForwardEntryCopyWithImpl(this._value, this._then);
+
+  // ignore: unused_field
+  final $Val _value;
+  // ignore: unused_field
+  final $Res Function($Val) _then;
+
+  /// Create a copy of ChatForwardEntry
+  /// with the given fields replaced by the non-null parameter values.
+  @pragma('vm:prefer-inline')
+  @override
+  $Res call({
+    Object? senderName = null,
+    Object? avatarUrl = null,
+    Object? content = null,
+    Object? createdAt = null,
+    Object? msgType = null,
+  }) {
+    return _then(
+      _value.copyWith(
+            senderName: null == senderName
+                ? _value.senderName
+                : senderName // ignore: cast_nullable_to_non_nullable
+                      as String,
+            avatarUrl: null == avatarUrl
+                ? _value.avatarUrl
+                : avatarUrl // ignore: cast_nullable_to_non_nullable
+                      as String,
+            content: null == content
+                ? _value.content
+                : content // ignore: cast_nullable_to_non_nullable
+                      as String,
+            createdAt: null == createdAt
+                ? _value.createdAt
+                : createdAt // ignore: cast_nullable_to_non_nullable
+                      as String,
+            msgType: null == msgType
+                ? _value.msgType
+                : msgType // ignore: cast_nullable_to_non_nullable
+                      as int,
+          )
+          as $Val,
+    );
+  }
+}
+
+/// @nodoc
+abstract class _$$ChatForwardEntryImplCopyWith<$Res>
+    implements $ChatForwardEntryCopyWith<$Res> {
+  factory _$$ChatForwardEntryImplCopyWith(
+    _$ChatForwardEntryImpl value,
+    $Res Function(_$ChatForwardEntryImpl) then,
+  ) = __$$ChatForwardEntryImplCopyWithImpl<$Res>;
+  @override
+  @useResult
+  $Res call({
+    String senderName,
+    String avatarUrl,
+    String content,
+    String createdAt,
+    int msgType,
+  });
+}
+
+/// @nodoc
+class __$$ChatForwardEntryImplCopyWithImpl<$Res>
+    extends _$ChatForwardEntryCopyWithImpl<$Res, _$ChatForwardEntryImpl>
+    implements _$$ChatForwardEntryImplCopyWith<$Res> {
+  __$$ChatForwardEntryImplCopyWithImpl(
+    _$ChatForwardEntryImpl _value,
+    $Res Function(_$ChatForwardEntryImpl) _then,
+  ) : super(_value, _then);
+
+  /// Create a copy of ChatForwardEntry
+  /// with the given fields replaced by the non-null parameter values.
+  @pragma('vm:prefer-inline')
+  @override
+  $Res call({
+    Object? senderName = null,
+    Object? avatarUrl = null,
+    Object? content = null,
+    Object? createdAt = null,
+    Object? msgType = null,
+  }) {
+    return _then(
+      _$ChatForwardEntryImpl(
+        senderName: null == senderName
+            ? _value.senderName
+            : senderName // ignore: cast_nullable_to_non_nullable
+                  as String,
+        avatarUrl: null == avatarUrl
+            ? _value.avatarUrl
+            : avatarUrl // ignore: cast_nullable_to_non_nullable
+                  as String,
+        content: null == content
+            ? _value.content
+            : content // ignore: cast_nullable_to_non_nullable
+                  as String,
+        createdAt: null == createdAt
+            ? _value.createdAt
+            : createdAt // ignore: cast_nullable_to_non_nullable
+                  as String,
+        msgType: null == msgType
+            ? _value.msgType
+            : msgType // ignore: cast_nullable_to_non_nullable
+                  as int,
+      ),
+    );
+  }
+}
+
+/// @nodoc
+@JsonSerializable()
+class _$ChatForwardEntryImpl implements _ChatForwardEntry {
+  const _$ChatForwardEntryImpl({
+    required this.senderName,
+    this.avatarUrl = '',
+    required this.content,
+    required this.createdAt,
+    required this.msgType,
+  });
+
+  factory _$ChatForwardEntryImpl.fromJson(Map<String, dynamic> json) =>
+      _$$ChatForwardEntryImplFromJson(json);
+
+  @override
+  final String senderName;
+  @override
+  @JsonKey()
+  final String avatarUrl;
+  @override
+  final String content;
+  @override
+  final String createdAt;
+  @override
+  final int msgType;
+
+  @override
+  String toString() {
+    return 'ChatForwardEntry(senderName: $senderName, avatarUrl: $avatarUrl, content: $content, createdAt: $createdAt, msgType: $msgType)';
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        (other.runtimeType == runtimeType &&
+            other is _$ChatForwardEntryImpl &&
+            (identical(other.senderName, senderName) ||
+                other.senderName == senderName) &&
+            (identical(other.avatarUrl, avatarUrl) ||
+                other.avatarUrl == avatarUrl) &&
+            (identical(other.content, content) || other.content == content) &&
+            (identical(other.createdAt, createdAt) ||
+                other.createdAt == createdAt) &&
+            (identical(other.msgType, msgType) || other.msgType == msgType));
+  }
+
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @override
+  int get hashCode => Object.hash(
+    runtimeType,
+    senderName,
+    avatarUrl,
+    content,
+    createdAt,
+    msgType,
+  );
+
+  /// Create a copy of ChatForwardEntry
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @override
+  @pragma('vm:prefer-inline')
+  _$$ChatForwardEntryImplCopyWith<_$ChatForwardEntryImpl> get copyWith =>
+      __$$ChatForwardEntryImplCopyWithImpl<_$ChatForwardEntryImpl>(
+        this,
+        _$identity,
+      );
+
+  @override
+  Map<String, dynamic> toJson() {
+    return _$$ChatForwardEntryImplToJson(this);
+  }
+}
+
+abstract class _ChatForwardEntry implements ChatForwardEntry {
+  const factory _ChatForwardEntry({
+    required final String senderName,
+    final String avatarUrl,
+    required final String content,
+    required final String createdAt,
+    required final int msgType,
+  }) = _$ChatForwardEntryImpl;
+
+  factory _ChatForwardEntry.fromJson(Map<String, dynamic> json) =
+      _$ChatForwardEntryImpl.fromJson;
+
+  @override
+  String get senderName;
+  @override
+  String get avatarUrl;
+  @override
+  String get content;
+  @override
+  String get createdAt;
+  @override
+  int get msgType;
+
+  /// Create a copy of ChatForwardEntry
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  _$$ChatForwardEntryImplCopyWith<_$ChatForwardEntryImpl> get copyWith =>
+      throw _privateConstructorUsedError;
+}
+
+ChatForwardResult _$ChatForwardResultFromJson(Map<String, dynamic> json) {
+  return _ChatForwardResult.fromJson(json);
+}
+
+/// @nodoc
+mixin _$ChatForwardResult {
+  int get convId => throw _privateConstructorUsedError;
+  List<int> get messageIds => throw _privateConstructorUsedError;
+
+  /// Serializes this ChatForwardResult to a JSON map.
+  Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
+
+  /// Create a copy of ChatForwardResult
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  $ChatForwardResultCopyWith<ChatForwardResult> get copyWith =>
+      throw _privateConstructorUsedError;
+}
+
+/// @nodoc
+abstract class $ChatForwardResultCopyWith<$Res> {
+  factory $ChatForwardResultCopyWith(
+    ChatForwardResult value,
+    $Res Function(ChatForwardResult) then,
+  ) = _$ChatForwardResultCopyWithImpl<$Res, ChatForwardResult>;
+  @useResult
+  $Res call({int convId, List<int> messageIds});
+}
+
+/// @nodoc
+class _$ChatForwardResultCopyWithImpl<$Res, $Val extends ChatForwardResult>
+    implements $ChatForwardResultCopyWith<$Res> {
+  _$ChatForwardResultCopyWithImpl(this._value, this._then);
+
+  // ignore: unused_field
+  final $Val _value;
+  // ignore: unused_field
+  final $Res Function($Val) _then;
+
+  /// Create a copy of ChatForwardResult
+  /// with the given fields replaced by the non-null parameter values.
+  @pragma('vm:prefer-inline')
+  @override
+  $Res call({Object? convId = null, Object? messageIds = null}) {
+    return _then(
+      _value.copyWith(
+            convId: null == convId
+                ? _value.convId
+                : convId // ignore: cast_nullable_to_non_nullable
+                      as int,
+            messageIds: null == messageIds
+                ? _value.messageIds
+                : messageIds // ignore: cast_nullable_to_non_nullable
+                      as List<int>,
+          )
+          as $Val,
+    );
+  }
+}
+
+/// @nodoc
+abstract class _$$ChatForwardResultImplCopyWith<$Res>
+    implements $ChatForwardResultCopyWith<$Res> {
+  factory _$$ChatForwardResultImplCopyWith(
+    _$ChatForwardResultImpl value,
+    $Res Function(_$ChatForwardResultImpl) then,
+  ) = __$$ChatForwardResultImplCopyWithImpl<$Res>;
+  @override
+  @useResult
+  $Res call({int convId, List<int> messageIds});
+}
+
+/// @nodoc
+class __$$ChatForwardResultImplCopyWithImpl<$Res>
+    extends _$ChatForwardResultCopyWithImpl<$Res, _$ChatForwardResultImpl>
+    implements _$$ChatForwardResultImplCopyWith<$Res> {
+  __$$ChatForwardResultImplCopyWithImpl(
+    _$ChatForwardResultImpl _value,
+    $Res Function(_$ChatForwardResultImpl) _then,
+  ) : super(_value, _then);
+
+  /// Create a copy of ChatForwardResult
+  /// with the given fields replaced by the non-null parameter values.
+  @pragma('vm:prefer-inline')
+  @override
+  $Res call({Object? convId = null, Object? messageIds = null}) {
+    return _then(
+      _$ChatForwardResultImpl(
+        convId: null == convId
+            ? _value.convId
+            : convId // ignore: cast_nullable_to_non_nullable
+                  as int,
+        messageIds: null == messageIds
+            ? _value._messageIds
+            : messageIds // ignore: cast_nullable_to_non_nullable
+                  as List<int>,
+      ),
+    );
+  }
+}
+
+/// @nodoc
+@JsonSerializable()
+class _$ChatForwardResultImpl implements _ChatForwardResult {
+  const _$ChatForwardResultImpl({
+    required this.convId,
+    required final List<int> messageIds,
+  }) : _messageIds = messageIds;
+
+  factory _$ChatForwardResultImpl.fromJson(Map<String, dynamic> json) =>
+      _$$ChatForwardResultImplFromJson(json);
+
+  @override
+  final int convId;
+  final List<int> _messageIds;
+  @override
+  List<int> get messageIds {
+    if (_messageIds is EqualUnmodifiableListView) return _messageIds;
+    // ignore: implicit_dynamic_type
+    return EqualUnmodifiableListView(_messageIds);
+  }
+
+  @override
+  String toString() {
+    return 'ChatForwardResult(convId: $convId, messageIds: $messageIds)';
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        (other.runtimeType == runtimeType &&
+            other is _$ChatForwardResultImpl &&
+            (identical(other.convId, convId) || other.convId == convId) &&
+            const DeepCollectionEquality().equals(
+              other._messageIds,
+              _messageIds,
+            ));
+  }
+
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @override
+  int get hashCode => Object.hash(
+    runtimeType,
+    convId,
+    const DeepCollectionEquality().hash(_messageIds),
+  );
+
+  /// Create a copy of ChatForwardResult
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @override
+  @pragma('vm:prefer-inline')
+  _$$ChatForwardResultImplCopyWith<_$ChatForwardResultImpl> get copyWith =>
+      __$$ChatForwardResultImplCopyWithImpl<_$ChatForwardResultImpl>(
+        this,
+        _$identity,
+      );
+
+  @override
+  Map<String, dynamic> toJson() {
+    return _$$ChatForwardResultImplToJson(this);
+  }
+}
+
+abstract class _ChatForwardResult implements ChatForwardResult {
+  const factory _ChatForwardResult({
+    required final int convId,
+    required final List<int> messageIds,
+  }) = _$ChatForwardResultImpl;
+
+  factory _ChatForwardResult.fromJson(Map<String, dynamic> json) =
+      _$ChatForwardResultImpl.fromJson;
+
+  @override
+  int get convId;
+  @override
+  List<int> get messageIds;
+
+  /// Create a copy of ChatForwardResult
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  _$$ChatForwardResultImplCopyWith<_$ChatForwardResultImpl> get copyWith =>
+      throw _privateConstructorUsedError;
 }
