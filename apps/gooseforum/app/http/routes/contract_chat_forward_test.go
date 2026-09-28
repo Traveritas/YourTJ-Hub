@@ -3,13 +3,13 @@ package routes
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/YourTongji/YourTJ-Hub/apps/gooseforum/app/models/chat/imUserChatConfigs"
-	"github.com/YourTongji/YourTJ-Hub/apps/gooseforum/app/models/forum/users"
 	"reflect"
 	"strings"
 	"testing"
 
+	"github.com/YourTongji/YourTJ-Hub/apps/gooseforum/app/models/chat/imUserChatConfigs"
 	"github.com/YourTongji/YourTJ-Hub/apps/gooseforum/app/models/chat/messages"
+	"github.com/YourTongji/YourTJ-Hub/apps/gooseforum/app/models/forum/users"
 	"github.com/YourTongji/YourTJ-Hub/apps/gooseforum/app/service/chatservice"
 )
 
@@ -48,7 +48,10 @@ func TestChatForwardMergedSnapshotAndRetry(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		data, _ := json.Marshal(page)
+		data, err := json.Marshal(page)
+		if err != nil {
+			t.Fatal(err)
+		}
 		var response map[string]any
 		if err := json.Unmarshal(data, &response); err != nil {
 			t.Fatal(err)
@@ -125,7 +128,10 @@ func TestChatForwardRejectsForeignSourcesAndBlockedRecipients(t *testing.T) {
 	if count != 0 {
 		t.Fatalf("rejected request leaked %d messages", count)
 	}
-	raw, _ := json.Marshal(good)
+	raw, err := json.Marshal(good)
+	if err != nil {
+		t.Fatal(err)
+	}
 	if rec := serveJSON(router, "/api/forum/chat/forward", string(raw), ""); rec.Code != 401 {
 		t.Fatalf("anonymous status %d", rec.Code)
 	}
@@ -137,7 +143,9 @@ func TestChatForwardIndividualAtomicRetryAndNestedBounds(t *testing.T) {
 	peer := createHTTPContractUser(t, conn, contractTestID())
 	target := createHTTPContractUser(t, conn, contractTestID())
 	conv, _ := chatservice.SendMessage(peer.Id, actor.Id, "first", 1)
-	chatservice.SendMessage(actor.Id, peer.Id, "second", 1)
+	if _, err := chatservice.SendMessage(actor.Id, peer.Id, "second", 1); err != nil {
+		t.Fatal(err)
+	}
 	var source []messages.Entity
 	conn.Where("conv_id = ?", conv).Order("id").Find(&source)
 	req := chatservice.ForwardRequest{ConvID: conv, PeerID: target.Id, MessageIDs: []uint64{source[1].Id, source[0].Id}, Mode: "individual", ClientForwardID: "atomic"}

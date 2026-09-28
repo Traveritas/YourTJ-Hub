@@ -52,6 +52,18 @@ func ForwardMessages(actor uint64, request ForwardRequest) (*ForwardResult, erro
 		}
 	}
 	request.MessageIDs = ids
+	outgoingCount := len(ids)
+	if request.Mode == "merged" {
+		outgoingCount = 1
+	}
+	keys := make([]string, outgoingCount)
+	for i := range keys {
+		key, err := forwardMessageKey(actor, request, i)
+		if err != nil {
+			return nil, err
+		}
+		keys[i] = key
+	}
 	security := hotdataserve.GetSecuritySettingsConfigCache()
 	for attempt := 0; attempt < 3; attempt++ {
 		result := &ForwardResult{MessageIDs: make([]uint64, 0, len(ids))}
@@ -75,14 +87,10 @@ func ForwardMessages(actor uint64, request ForwardRequest) (*ForwardResult, erro
 			}
 			// Resolve an acknowledged batch before rebuilding display-only metadata.
 			// A profile update must never turn a successful delivery into a retry failure.
-			outgoingCount := len(ids)
-			if request.Mode == "merged" {
-				outgoingCount = 1
-			}
 			previous := make([]messages.Entity, 0, outgoingCount)
 			for i := range outgoingCount {
 				var stored messages.Entity
-				err := tx.Where("sender_id = ? AND client_message_id = ?", actor, forwardMessageKey(actor, request, i)).First(&stored).Error
+				err := tx.Where("sender_id = ? AND client_message_id = ?", actor, keys[i]).First(&stored).Error
 				if err == nil {
 					previous = append(previous, stored)
 				} else if !errors.Is(err, gorm.ErrRecordNotFound) {
@@ -94,7 +102,7 @@ func ForwardMessages(actor uint64, request ForwardRequest) (*ForwardResult, erro
 					return errors.New("forward identity conflict")
 				}
 				for i, stored := range previous {
-					convID, err := sendMessageWithEffects(tx, actor, request.PeerID, stored.Content, stored.MsgType, false, forwardMessageKey(actor, request, i))
+					convID, err := sendMessageWithEffects(tx, actor, request.PeerID, stored.Content, stored.MsgType, false, keys[i])
 					if err != nil {
 						return err
 					}
@@ -142,7 +150,7 @@ func ForwardMessages(actor uint64, request ForwardRequest) (*ForwardResult, erro
 				outgoing = []messages.Entity{{Content: encoded, MsgType: messages.ForwardType}}
 			}
 			for i, message := range outgoing {
-				key := forwardMessageKey(actor, request, i)
+				key := keys[i]
 				if len(moderationservice.FindSensitiveWordsWithConfig(messages.DisplayContent(message.Content, message.MsgType), security)) > 0 {
 					return errors.New("forwarded content blocked")
 				}
@@ -178,12 +186,15 @@ func ForwardMessages(actor uint64, request ForwardRequest) (*ForwardResult, erro
 	return nil, errors.New("forward retry exhausted")
 }
 
-func forwardMessageKey(actor uint64, request ForwardRequest, index int) string {
-	identity, _ := json.Marshal(struct {
+func forwardMessageKey(actor uint64, request ForwardRequest, index int) (string, error) {
+	identity, err := json.Marshal(struct {
 		Actor   uint64
 		Request ForwardRequest
 		Index   int
 	}{actor, request, index})
+	if err != nil {
+		return "", err
+	}
 	digest := sha256.Sum256(identity)
-	return hex.EncodeToString(digest[:])
+	return hex.EncodeToString(digest[:]), nil
 }

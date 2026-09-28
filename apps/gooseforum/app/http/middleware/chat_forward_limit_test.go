@@ -2,6 +2,7 @@ package middleware
 
 import (
 	"io"
+	"net/http"
 	"net/http/httptest"
 	"strings"
 	"testing"
@@ -30,24 +31,24 @@ func TestChatForwardChargesSharedSendQuotaAndRestoresBody(t *testing.T) {
 	})
 	router.POST("/send", RateLimit(RateLimitMessageSend), func(c *gin.Context) { c.Status(200) })
 	rec := httptest.NewRecorder()
-	router.ServeHTTP(rec, httptest.NewRequest("POST", "/forward", strings.NewReader(body)))
+	router.ServeHTTP(rec, httptest.NewRequest(http.MethodPost, "/forward", strings.NewReader(body)))
 	if rec.Code != 200 {
 		t.Fatalf("forward status %d", rec.Code)
 	}
 	for range quota - 3 {
 		rec = httptest.NewRecorder()
-		router.ServeHTTP(rec, httptest.NewRequest("POST", "/send", nil))
+		router.ServeHTTP(rec, httptest.NewRequest(http.MethodPost, "/send", nil))
 		if rec.Code != 200 {
 			t.Fatal("premature throttle")
 		}
 	}
 	rec = httptest.NewRecorder()
-	router.ServeHTTP(rec, httptest.NewRequest("POST", "/send", nil))
+	router.ServeHTTP(rec, httptest.NewRequest(http.MethodPost, "/send", nil))
 	if rec.Code != 429 {
 		t.Fatalf("forward bypassed ordinary send quota: %d", rec.Code)
 	}
 	rec = httptest.NewRecorder()
-	router.ServeHTTP(rec, httptest.NewRequest("POST", "/forward", strings.NewReader(strings.Repeat("x", 8193))))
+	router.ServeHTTP(rec, httptest.NewRequest(http.MethodPost, "/forward", strings.NewReader(strings.Repeat("x", 8193))))
 	if rec.Code != 400 {
 		t.Fatalf("oversized forward body status %d", rec.Code)
 	}
