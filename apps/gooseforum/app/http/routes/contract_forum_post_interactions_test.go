@@ -365,6 +365,30 @@ func TestCreatePostHTTPContract(t *testing.T) {
 		}
 	})
 
+	t.Run("oversized source with short visible text is rejected as tooLong", func(t *testing.T) {
+		conn, router := setupForumInteractionContractTest(t)
+		posting := defaultconfig.GetDefaultPostingSettingsConfig()
+		posting.TextControl.MinPostLength = 3
+		posting.TextControl.MaxPostLength = 15
+		persistHTTPContractConfig(t, conn, pageConfig.PostingSettings, posting)
+		hotdataserve.ClearPostingSettingsConfigCache()
+
+		user := createHTTPContractUser(t, conn, contractTestID())
+		base := contractTestID()
+		topicID, firstPostID := base, base+1
+		createContractPublishedTopic(t, conn, topicID, firstPostID, user.Id)
+		token := contractSessionToken(t, user)
+
+		// 源文本超护栏且可见文字也低于下限：护栏是纯字节扫描，必须先于
+		// VisibleTextLength 的 goldmark 解析执行，按 tooLong 拒绝。
+		source := "[a](" + strings.Repeat("x", 5000) + ")"
+		body := fmt.Sprintf(`{"topicId":%d,"content":%q}`, topicID, source)
+		response := decodeContractEnvelope(t, serveJSON(router, "/api/forum/posts/create", body, token))
+		if response.MessageCode != "comment.content.tooLong" || response.Params["maxLength"] != float64(15) {
+			t.Fatalf("oversized source with short visible response = %#v, want comment.content.tooLong maxLength=15", response)
+		}
+	})
+
 	t.Run("oversized request body is rejected", func(t *testing.T) {
 		conn, router := setupForumInteractionContractTest(t)
 		user := createHTTPContractUser(t, conn, contractTestID())
@@ -598,6 +622,31 @@ func TestUpdatePostHTTPContract(t *testing.T) {
 		body = fmt.Sprintf(`{"postId":%d,"content":%q}`, replyID, withinGuard)
 		if response := decodeContractEnvelope(t, serveJSON(router, "/api/forum/posts/update", body, token)); response.Code != 0 {
 			t.Fatalf("within-guard source response = %#v, want success", response)
+		}
+	})
+
+	t.Run("oversized source with short visible text is rejected as tooLong", func(t *testing.T) {
+		conn, router := setupForumInteractionContractTest(t)
+		posting := defaultconfig.GetDefaultPostingSettingsConfig()
+		posting.TextControl.MinPostLength = 3
+		posting.TextControl.MaxPostLength = 15
+		persistHTTPContractConfig(t, conn, pageConfig.PostingSettings, posting)
+		hotdataserve.ClearPostingSettingsConfigCache()
+
+		user := createHTTPContractUser(t, conn, contractTestID())
+		base := contractTestID()
+		topicID, firstPostID, replyID := base, base+1, base+2
+		createContractPublishedTopic(t, conn, topicID, firstPostID, user.Id)
+		createContractReplyPost(t, conn, replyID, topicID, user.Id)
+		token := contractSessionToken(t, user)
+
+		// 源文本超护栏且可见文字也低于下限：护栏是纯字节扫描，必须先于
+		// VisibleTextLength 的 goldmark 解析执行，按 tooLong 拒绝。
+		source := "[a](" + strings.Repeat("x", 5000) + ")"
+		body := fmt.Sprintf(`{"postId":%d,"content":%q}`, replyID, source)
+		response := decodeContractEnvelope(t, serveJSON(router, "/api/forum/posts/update", body, token))
+		if response.MessageCode != "comment.content.tooLong" || response.Params["maxLength"] != float64(15) {
+			t.Fatalf("oversized source with short visible response = %#v, want comment.content.tooLong maxLength=15", response)
 		}
 	})
 
