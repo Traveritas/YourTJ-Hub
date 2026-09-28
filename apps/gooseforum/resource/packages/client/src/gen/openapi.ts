@@ -7544,8 +7544,14 @@ export interface components {
             topicId?: number;
             /** @description Markdown content; configurable minimum and maximum lengths count rendered visible text in Unicode code points, excluding Markdown marks, link destinations, bare/auto-linked URLs and e-mail addresses (their rendered text included), image syntax, sticker tokens and zero-width format characters. The raw Markdown source is additionally capped at four times maxPostLength (never below 4096 code points) to bound storage; request bodies over 2 MiB are rejected with HTTP 400 `common.request.parseFailed`. */
             content: string;
-            /** @description Title; configurable minimum and maximum lengths count Unicode code points. */
-            title: string;
+            /**
+             * @description Title. Required and non-empty for content types 0/1/3 (see the `if`/`else`
+             *     constraint); moments (contentType=2) may omit it or send an empty string to
+             *     publish without a title — it is never derived from the body, and clients render
+             *     no title for such topics. When provided, configurable minimum and maximum
+             *     lengths count Unicode code points.
+             */
+            title?: string;
             categoryId: number[];
             /**
              * @description Existing draft/published status value; omitted values use the legacy draft default (0).

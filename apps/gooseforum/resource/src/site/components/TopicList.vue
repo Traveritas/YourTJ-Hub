@@ -7,6 +7,7 @@ import { createTopicCardInteraction, type TopicCardInteraction } from '@/site/ut
 import TopicCardActions from '@/site/components/TopicCardActions.vue'
 import TopicFeedPreview from '@/site/components/TopicFeedPreview.vue'
 import TopicRow from '@/site/components/TopicRow.vue'
+import { topicDisplayLabel } from '@/runtime/topic-description'
 const props = withDefaults(defineProps<{
   topics: TopicPayload[]
   viewerId?: number
@@ -74,10 +75,10 @@ onBeforeUnmount(clearInteractions)
           <span class="shrink-0 rounded bg-primary/10 px-1.5 py-0.5 text-[11px] font-medium text-primary">{{ t('topicList.pinned') }}</span>
           <a
             :href="pinnedTopics[0]!.url"
-            :title="pinnedTopics[0]!.title"
+            :title="topicDisplayLabel(pinnedTopics[0]!.id, pinnedTopics[0]!.title, pinnedTopics[0]!.description)"
             class="flex min-h-11 min-w-0 flex-1 items-center rounded text-sm font-medium text-base-content/90 outline-none hover:text-primary focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-primary"
           >
-            <span class="truncate">{{ pinnedTopics[0]!.title }}</span>
+            <span class="truncate">{{ topicDisplayLabel(pinnedTopics[0]!.id, pinnedTopics[0]!.title, pinnedTopics[0]!.description) }}</span>
           </a>
           <button
             v-if="pinnedTopics.length > 1"
@@ -99,11 +100,11 @@ onBeforeUnmount(clearInteractions)
           <div class="min-h-0 overflow-hidden">
             <a
               :href="topic.url"
-              :title="topic.title"
+              :title="topicDisplayLabel(topic.id, topic.title, topic.description)"
               class="group flex min-h-11 items-center gap-2.5 rounded-md border-t border-primary/5 px-1 py-2 text-sm outline-none transition-colors hover:bg-primary/5 focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-primary motion-reduce:transition-none"
             >
               <span class="shrink-0 rounded bg-primary/10 px-1.5 py-0.5 text-[11px] font-medium text-primary">{{ t('topicList.pinned') }}</span>
-              <span class="min-w-0 flex-1 line-clamp-2 break-words font-medium leading-5 text-base-content/90 group-hover:text-primary">{{ topic.title }}</span>
+              <span class="min-w-0 flex-1 line-clamp-2 break-words font-medium leading-5 text-base-content/90 group-hover:text-primary">{{ topicDisplayLabel(topic.id, topic.title, topic.description) }}</span>
             </a>
           </div>
         </li>
@@ -155,7 +156,7 @@ onBeforeUnmount(clearInteractions)
         <a
           :href="topic.url"
           class="absolute inset-0 outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
-          :aria-label="topic.title"
+          :aria-label="topicDisplayLabel(topic.id, topic.title, topic.description)"
         />
         <TopicCardActions
           :topic="topic"

@@ -235,19 +235,23 @@ class _GfTopicCardState extends State<GfTopicCard> {
                   Row(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: <Widget>[
-                      Expanded(
-                        child: Text(
-                          widget.title,
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
-                          style: TextStyle(
-                            color: colors.baseContent,
-                            fontSize: 17,
-                            height: 1.35,
-                            fontWeight: FontWeight.w600,
+                      // 无标题瞬间（title 为空串）不渲染标题，未读圆点保持右对齐。
+                      if (widget.title.isNotEmpty)
+                        Expanded(
+                          child: Text(
+                            widget.title,
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                            style: TextStyle(
+                              color: colors.baseContent,
+                              fontSize: 17,
+                              height: 1.35,
+                              fontWeight: FontWeight.w600,
+                            ),
                           ),
-                        ),
-                      ),
+                        )
+                      else
+                        const Spacer(),
                       if (widget.unseen) ...<Widget>[
                         const SizedBox(width: 6),
                         Container(

@@ -1410,8 +1410,10 @@ class _TopicPageState extends ConsumerState<TopicPage>
     final GfColors colors = GfTheme.colorsOf(context);
     final AppLocalizations l10n = AppLocalizations.of(context);
 
-    final String appBarTitle = _showHeaderTitle
-        ? (_page.value?.topic.title ?? l10n.topicTitle)
+    // 无标题瞬间（标题为空串）不显示空标题，回退到通用的「话题」标签。
+    final String topicTitle = _page.value?.topic.title.trim() ?? '';
+    final String appBarTitle = _showHeaderTitle && topicTitle.isNotEmpty
+        ? topicTitle
         : l10n.topicTitle;
     final scaffold = Scaffold(
       appBar: GfAppBar(
@@ -1978,12 +1980,15 @@ class _TopicHeader extends StatelessWidget {
               ],
             ),
           ],
-          const SizedBox(height: 14),
-          Text(
-            topic.title,
-            key: titleKey,
-            style: GfTheme.typographyOf(context).title1,
-          ),
+          // 无标题瞬间不渲染详情大标题（titleKey 缺失时滚动页头检测自动跳过）。
+          if (topic.title.trim().isNotEmpty) ...[
+            const SizedBox(height: 14),
+            Text(
+              topic.title,
+              key: titleKey,
+              style: GfTheme.typographyOf(context).title1,
+            ),
+          ],
           if (available &&
               topic.contentType != 3 &&
               topic.contentType != 0 &&

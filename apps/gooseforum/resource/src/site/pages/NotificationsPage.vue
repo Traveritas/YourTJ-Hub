@@ -192,7 +192,8 @@ function notificationText(item: NotificationPayload) {
   if (item.eventType === 'follow') {
     return templateText || item.content || item.payload.content || t('notifications.followDescription', { actor: actorName(item) })
   }
-  if (item.topic) {
+  // 无标题瞬间：无标题时回退到模板文案/正文，避免渲染空通知文本。
+  if (item.topic?.title) {
     return item.topic.title
   }
   if (templateText) return templateText

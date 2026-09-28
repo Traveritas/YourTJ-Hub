@@ -1716,6 +1716,11 @@ func buildTopicMeta(c *gin.Context, topic TopicDetailPayload, postStream ...[]Po
 	if description == "" {
 		description = i18n.T(requestLang(c), "meta.topicDesc", "title", topic.Title, "site", siteTitle())
 	}
+	// 无标题瞬间的结构化数据用摘要作 headline，避免导出空 headline。
+	headline := topic.Title
+	if headline == "" {
+		headline = description
+	}
 	inlineImages := topicImageURLs(topic, baseURL)
 	categoryNames := lo.Map(topic.Categories, func(item TopicCategoryPayload, _ int) string { return item.Name })
 	section := ""
@@ -1735,7 +1740,7 @@ func buildTopicMeta(c *gin.Context, topic TopicDetailPayload, postStream ...[]Po
 	jsonLD := vo.ArticleJSONLD{
 		Context:          "https://schema.org",
 		Type:             "DiscussionForumPosting",
-		Headline:         topic.Title,
+		Headline:         headline,
 		Description:      description,
 		Text:             topicPlainText(requestLang(c), topic),
 		Image:            inlineImages,
@@ -1762,7 +1767,7 @@ func buildTopicMeta(c *gin.Context, topic TopicDetailPayload, postStream ...[]Po
 		Description: description,
 		Canonical:   canonical,
 		OpenGraph: &OpenGraphMeta{
-			Title:         topic.Title,
+			Title:         headline,
 			Description:   description,
 			Type:          "article",
 			URL:           canonical,
@@ -1776,7 +1781,7 @@ func buildTopicMeta(c *gin.Context, topic TopicDetailPayload, postStream ...[]Po
 		},
 		Twitter: &TwitterMeta{
 			Card:        "summary",
-			Title:       topic.Title,
+			Title:       headline,
 			Description: description,
 			Image:       firstString(inlineImages),
 		},

@@ -128,7 +128,7 @@ func postSourceLimit(maxPostLength int) int {
 type WriteTopicReq struct {
 	TopicId     uint64   `json:"topicId"`
 	Content     string   `json:"content" validate:"required"`
-	Title       string   `json:"title" validate:"required"`
+	Title       string   `json:"title"` // 瞬间（contentType=2）可留空，其余类型由 writeTopic 强制非空
 	CategoryId  []uint64 `json:"categoryId" validate:"min=1,max=3"`
 	TopicStatus int8     `json:"topicStatus" validate:"oneof=0 1"`
 	Website     string   `json:"website,omitempty"` // 蜜罐字段，正常用户不可见
@@ -149,6 +149,16 @@ func WriteTopic(req component.BetterRequest[WriteTopicReq]) component.Response {
 func writeTopic(req component.BetterRequest[WriteTopicReq], agent bool) component.Response {
 	// 获取发布设置
 	postingConfig := hotdataserve.GetPostingSettingsConfigCache()
+
+	// 瞬间（thought）允许无标题：空白标题规范化为空串，不从正文自动提取。
+	// 非瞬间类型必须携带标题；该检查必须排在验证码/蜜罐/权限之前，与原先
+	// bind-time validate:"required" 的语义一致——无效请求不消耗验证码等一次性凭据。
+	if req.Params.ContentType == posts.ContentTypeThought && strings.TrimSpace(req.Params.Title) == "" {
+		req.Params.Title = ""
+	}
+	if req.Params.Title == "" && req.Params.ContentType != posts.ContentTypeThought {
+		return component.FailResponseCode(component.MessageRequestInvalidParams, nil)
+	}
 
 	userEntity, err := req.GetUser()
 	if err != nil || userEntity.Id == 0 {
@@ -185,7 +195,8 @@ func writeTopic(req component.BetterRequest[WriteTopicReq], agent bool) componen
 	}
 
 	titleLength := utf8.RuneCountInString(req.Params.Title)
-	if titleLength < postingConfig.TextControl.MinTitleLength {
+	// 空标题仅瞬间合法，跳过最小长度校验；填写了标题的瞬间仍受最小/最大长度约束。
+	if titleLength > 0 && titleLength < postingConfig.TextControl.MinTitleLength {
 		minLength := postingConfig.TextControl.MinTitleLength
 		return component.FailResponseCode(
 			component.MessageTopicTitleTooShort,

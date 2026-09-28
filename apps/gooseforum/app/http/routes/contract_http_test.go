@@ -534,6 +534,75 @@ func TestWriteTopicHTTPContract(t *testing.T) {
 		}
 	})
 
+	t.Run("moment accepts empty title and stores no derived title", func(t *testing.T) {
+		conn, router := setupHTTPContractTest(t)
+		user := createHTTPContractUser(t, conn, contractTestID())
+		categoryID := contractTestID()
+		if err := conn.Create(&category.Entity{Id: categoryID, Name: "Moments", Slug: fmt.Sprintf("moments-%d", categoryID)}).Error; err != nil {
+			t.Fatalf("create moment category: %v", err)
+		}
+		body := fmt.Sprintf(`{"title":"","content":"Sunny campus moment body without a title.","categoryId":[%d],"topicStatus":1,"contentType":2}`, categoryID)
+		recorder := serveJSON(router, "/api/forum/topics/write", body, contractSessionToken(t, user))
+		if recorder.Code != http.StatusOK {
+			t.Fatalf("moment write status = %d, want 200: %s", recorder.Code, recorder.Body.String())
+		}
+		response := decodeContractEnvelope(t, recorder)
+		if response.Code != 0 {
+			t.Fatalf("moment write response = %#v, want success with empty title", response)
+		}
+		var topicID uint64
+		if err := json.Unmarshal(response.Result, &topicID); err != nil || topicID == 0 {
+			t.Fatalf("moment write result = %s, want positive numeric topic id: %v", response.Result, err)
+		}
+		topic := topics.Get(topicID)
+		if topic.Id == 0 || topic.Title != "" {
+			t.Fatalf("stored topic = %#v, want empty title", topic)
+		}
+		firstPost := posts.Get(topic.FirstPostId)
+		if firstPost.ContentType != posts.ContentTypeThought {
+			t.Fatalf("first post contentType = %d, want %d", firstPost.ContentType, posts.ContentTypeThought)
+		}
+	})
+
+	t.Run("whitespace-only moment title normalizes to empty", func(t *testing.T) {
+		conn, router := setupHTTPContractTest(t)
+		user := createHTTPContractUser(t, conn, contractTestID())
+		categoryID := contractTestID()
+		if err := conn.Create(&category.Entity{Id: categoryID, Name: "Blank Moments", Slug: fmt.Sprintf("blank-moments-%d", categoryID)}).Error; err != nil {
+			t.Fatalf("create blank moment category: %v", err)
+		}
+		body := fmt.Sprintf(`{"title":"   ","content":"Moment body survives blank title normalization.","categoryId":[%d],"topicStatus":1,"contentType":2}`, categoryID)
+		response := decodeContractEnvelope(t, serveJSON(router, "/api/forum/topics/write", body, contractSessionToken(t, user)))
+		if response.Code != 0 {
+			t.Fatalf("blank-title moment response = %#v, want success", response)
+		}
+		var topicID uint64
+		if err := json.Unmarshal(response.Result, &topicID); err != nil || topicID == 0 {
+			t.Fatalf("blank-title moment result = %s, want topic id: %v", response.Result, err)
+		}
+		if topic := topics.Get(topicID); topic.Title != "" {
+			t.Fatalf("stored title = %q, want normalized empty title", topic.Title)
+		}
+	})
+
+	t.Run("forum topic still rejects an empty title with the legacy failure", func(t *testing.T) {
+		conn, router := setupHTTPContractTest(t)
+		user := createHTTPContractUser(t, conn, contractTestID())
+		categoryID := contractTestID()
+		if err := conn.Create(&category.Entity{Id: categoryID, Name: "Required Titles", Slug: fmt.Sprintf("required-titles-%d", categoryID)}).Error; err != nil {
+			t.Fatalf("create required-title category: %v", err)
+		}
+		body := fmt.Sprintf(`{"title":"","content":"Article body that is long enough for posting rules.","categoryId":[%d],"topicStatus":1,"contentType":3}`, categoryID)
+		recorder := serveJSON(router, "/api/forum/topics/write", body, contractSessionToken(t, user))
+		if recorder.Code != http.StatusOK {
+			t.Fatalf("empty article title status = %d, want legacy HTTP 200 validation failure", recorder.Code)
+		}
+		response := decodeContractEnvelope(t, recorder)
+		if response.MessageCode != "common.request.invalidParams" || len(response.Params) != 0 {
+			t.Fatalf("empty article title response = %#v, want common.request.invalidParams without params", response)
+		}
+	})
+
 	t.Run("visible text length ignores Markdown syntax", func(t *testing.T) {
 		conn, router := setupHTTPContractTest(t)
 		posting := defaultconfig.GetDefaultPostingSettingsConfig()
