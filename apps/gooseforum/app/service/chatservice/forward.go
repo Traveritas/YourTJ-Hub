@@ -111,43 +111,23 @@ func ForwardMessages(actor uint64, request ForwardRequest) (*ForwardResult, erro
 				}
 				return nil
 			}
-			// Current profile names are display-only; private per-viewer notes are never copied.
-			senderIDs := make([]uint64, 0, len(source))
-			for _, message := range source {
-				senderIDs = append(senderIDs, message.SenderId)
-			}
-			identities, err := users.ChatIdentitiesByIDs(tx, senderIDs)
-			if err != nil {
-				return err
-			}
-			bundle := &messages.ForwardedBundle{Version: 1}
-			totalBytes := 0
-			for _, message := range source {
-				totalBytes += len(message.Content)
-				if totalBytes > messages.MaxForwardBytes {
-					return errors.New("forward content too large")
-				}
-				name := "Unknown user"
-				identity := identities[message.SenderId]
-				if identity.Name != "" {
-					name = identity.Name
-				}
-				entry := messages.ForwardedEntry{SenderName: name, AvatarURL: identity.AvatarURL, Content: message.Content, CreatedAt: message.CreatedAt.Format(time.RFC3339), MsgType: message.MsgType}
-				if nested := forwardedPayload(message); nested != nil {
-					entry.Forwarded = nested
-					entry.Content = nested.Text() // Readable fallback for older clients.
-				} else if message.MsgType < 1 || message.MsgType > 3 {
-					return errors.New("unsupported forwarded message")
-				}
-				bundle.Messages = append(bundle.Messages, entry)
-			}
 			outgoing := source
 			if request.Mode == "merged" {
-				encoded, err := bundle.Encode()
+				encoded, err := mergedForwardContent(tx, source)
 				if err != nil {
 					return err
 				}
 				outgoing = []messages.Entity{{Content: encoded, MsgType: messages.ForwardType}}
+			} else {
+				for _, message := range source {
+					if message.MsgType == messages.ForwardType {
+						if forwardedPayload(message) == nil {
+							return errors.New("unsupported forwarded message")
+						}
+					} else if message.MsgType < 1 || message.MsgType > 3 {
+						return errors.New("unsupported forwarded message")
+					}
+				}
 			}
 			for i, message := range outgoing {
 				key := keys[i]
@@ -184,6 +164,42 @@ func ForwardMessages(actor uint64, request ForwardRequest) (*ForwardResult, erro
 		time.Sleep(time.Duration(attempt+1) * 10 * time.Millisecond)
 	}
 	return nil, errors.New("forward retry exhausted")
+}
+
+// Only merged forwarding creates a snapshot. Individual copies keep each
+// original body and must not inherit the aggregate snapshot byte limit.
+func mergedForwardContent(tx *gorm.DB, source []messages.Entity) (string, error) {
+	// Current profile names are display-only; private per-viewer notes are never copied.
+	senderIDs := make([]uint64, 0, len(source))
+	for _, message := range source {
+		senderIDs = append(senderIDs, message.SenderId)
+	}
+	identities, err := users.ChatIdentitiesByIDs(tx, senderIDs)
+	if err != nil {
+		return "", err
+	}
+	bundle := &messages.ForwardedBundle{Version: 1}
+	totalBytes := 0
+	for _, message := range source {
+		totalBytes += len(message.Content)
+		if totalBytes > messages.MaxForwardBytes {
+			return "", errors.New("forward content too large")
+		}
+		name := "Unknown user"
+		identity := identities[message.SenderId]
+		if identity.Name != "" {
+			name = identity.Name
+		}
+		entry := messages.ForwardedEntry{SenderName: name, AvatarURL: identity.AvatarURL, Content: message.Content, CreatedAt: message.CreatedAt.Format(time.RFC3339), MsgType: message.MsgType}
+		if nested := forwardedPayload(message); nested != nil {
+			entry.Forwarded = nested
+			entry.Content = nested.Text() // Readable fallback for older clients.
+		} else if message.MsgType < 1 || message.MsgType > 3 {
+			return "", errors.New("unsupported forwarded message")
+		}
+		bundle.Messages = append(bundle.Messages, entry)
+	}
+	return bundle.Encode()
 }
 
 func forwardMessageKey(actor uint64, request ForwardRequest, index int) (string, error) {

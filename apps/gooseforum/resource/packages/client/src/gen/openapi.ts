@@ -8292,7 +8292,7 @@ export interface components {
             /** @description Full message content is preserved; only the conversation-list preview is bounded to 255 Unicode characters. Sensitive-word hits fail with `chat.sensitive.blocked` (HTTP 200, params `word` plus all matches in `words`). Other send failures use `chat.send.failed` without raw storage-error details. */
             content: string;
             /**
-             * @description 1 text, 2 image, 3 voice, 4 merged chat history. Content always includes a readable plain-text fallback. Effectively required — omitting it binds 0 and fails validation with `common.request.invalidParams` (HTTP 200).
+             * @description 1 text, 2 image, 3 voice. Merged chat history (type 4) is created only by `/api/forum/chat/forward`. Effectively required — omitting it binds 0 and fails validation with `common.request.invalidParams` (HTTP 200).
              * @enum {integer}
              */
             msgType: 1 | 2 | 3;

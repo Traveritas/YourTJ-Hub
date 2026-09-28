@@ -249,3 +249,124 @@ func TestChatForwardIndividualAtomicRetryAndNestedBounds(t *testing.T) {
 		t.Fatal("profile change changed acknowledged message")
 	}
 }
+
+func TestChatForwardIndividualPreservesLargeMessages(t *testing.T) {
+	card, err := (&messages.ForwardedBundle{Version: 1, Messages: []messages.ForwardedEntry{{
+		SenderName: "Original sender", Content: strings.Repeat("x", 40*1024), MsgType: 1,
+	}}}).Encode()
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, test := range []struct {
+		name    string
+		content []string
+		msgType int8
+	}{
+		{"ordinary message over snapshot limit", []string{strings.Repeat("字", messages.MaxForwardBytes/3+1)}, 1},
+		{"valid cards over combined snapshot limit", []string{card, card}, messages.ForwardType},
+	} {
+		t.Run(test.name, func(t *testing.T) {
+			conn, router := setupNotificationChatContractTest(t)
+			actor := createHTTPContractUser(t, conn, contractTestID())
+			peer := createHTTPContractUser(t, conn, contractTestID())
+			target := createHTTPContractUser(t, conn, contractTestID())
+			var convID uint64
+			for _, content := range test.content {
+				convID, err = chatservice.SendMessage(peer.Id, actor.Id, content, test.msgType)
+				if err != nil {
+					t.Fatal(err)
+				}
+			}
+			var source []messages.Entity
+			if err := conn.Where("conv_id = ?", convID).Order("id").Find(&source).Error; err != nil {
+				t.Fatal(err)
+			}
+			ids := make([]uint64, len(source))
+			for i, message := range source {
+				ids[i] = message.Id
+			}
+			request := chatservice.ForwardRequest{ConvID: convID, PeerID: target.Id, MessageIDs: ids, Mode: "individual", ClientForwardID: "large-copy"}
+			token := contractSessionToken(t, actor)
+			var first chatservice.ForwardResult
+			for attempt := range 2 {
+				body, err := json.Marshal(request)
+				if err != nil {
+					t.Fatal(err)
+				}
+				rec := serveJSON(router, "/api/forum/chat/forward", string(body), token)
+				var envelope struct {
+					Code   int                       `json:"code"`
+					Result chatservice.ForwardResult `json:"result"`
+				}
+				if rec.Code != 200 || json.Unmarshal(rec.Body.Bytes(), &envelope) != nil || envelope.Code != 0 || len(envelope.Result.MessageIDs) != len(source) {
+					t.Fatalf("individual forward: %d %s", rec.Code, rec.Body)
+				}
+				if attempt == 0 {
+					first = envelope.Result
+				} else if !reflect.DeepEqual(first, envelope.Result) {
+					t.Fatal("retry changed delivery identity")
+				}
+			}
+			var sent []messages.Entity
+			if err := conn.Where("conv_id = ?", first.ConvID).Order("id").Find(&sent).Error; err != nil {
+				t.Fatal(err)
+			}
+			if len(sent) != len(source) {
+				t.Fatalf("expected %d copies, got %d", len(source), len(sent))
+			}
+			for i, message := range sent {
+				if message.Content != source[i].Content || message.MsgType != source[i].MsgType {
+					t.Fatal("individual copy changed content or type")
+				}
+			}
+			request.Mode = "merged"
+			request.ClientForwardID = "oversized-merge"
+			if _, err := chatservice.ForwardMessages(actor.Id, request); err == nil {
+				t.Fatal("oversized merged snapshot should fail")
+			}
+			var count int64
+			if err := conn.Model(&messages.Entity{}).Where("conv_id = ?", first.ConvID).Count(&count).Error; err != nil {
+				t.Fatal(err)
+			}
+			if count != int64(len(source)) {
+				t.Fatal("rejected merge left a message behind")
+			}
+		})
+	}
+}
+
+func TestChatForwardRejectsUnsupportedSourceTypes(t *testing.T) {
+	conn, _ := setupNotificationChatContractTest(t)
+	actor := createHTTPContractUser(t, conn, contractTestID())
+	peer := createHTTPContractUser(t, conn, contractTestID())
+	target := createHTTPContractUser(t, conn, contractTestID())
+	for _, msgType := range []int8{0, messages.ForwardType, 5} {
+		// Simulate a corrupt or unsupported stored message, including an invalid
+		// history card. Individual mode must still validate the original card.
+		convID, err := chatservice.SendMessage(peer.Id, actor.Id, "invalid snapshot", msgType)
+		if err != nil {
+			t.Fatal(err)
+		}
+		var source messages.Entity
+		if err := conn.Where("conv_id = ?", convID).Last(&source).Error; err != nil {
+			t.Fatal(err)
+		}
+		// GORM substitutes the model default for zero-valued types on insert.
+		if err := conn.Model(&source).Update("msg_type", msgType).Error; err != nil {
+			t.Fatal(err)
+		}
+		for _, mode := range []string{"individual", "merged"} {
+			request := chatservice.ForwardRequest{ConvID: convID, PeerID: target.Id, MessageIDs: []uint64{source.Id}, Mode: mode, ClientForwardID: "invalid-copy"}
+			if _, err := chatservice.ForwardMessages(actor.Id, request); err == nil {
+				t.Fatalf("%s forwarded unsupported type %d", mode, msgType)
+			}
+		}
+	}
+	var count int64
+	if err := conn.Model(&messages.Entity{}).Where("sender_id = ?", actor.Id).Count(&count).Error; err != nil {
+		t.Fatal(err)
+	}
+	if count != 0 {
+		t.Fatal("unsupported source left a forwarded copy")
+	}
+}
