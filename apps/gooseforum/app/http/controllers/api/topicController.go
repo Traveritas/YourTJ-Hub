@@ -214,6 +214,18 @@ func writeTopic(req component.BetterRequest[WriteTopicReq], agent bool) componen
 
 	}
 
+	// 源文本护栏是纯字节扫描，先于 VisibleTextLength 的 goldmark 解析执行：
+	// 注定超限的请求体（如 2 MiB 链接目标）零解析成本被拒，也不做无意义的
+	// 下限判定。
+	maxLength := postingConfig.TextControl.MaxPostLength
+	if utf8.RuneCountInString(req.Params.Content) > postSourceLimit(maxLength) {
+		return component.FailResponseCode(
+			component.MessageTopicContentTooLong,
+
+			component.MessageParams{"maxLength": maxLength})
+
+	}
+
 	// 正文长度按渲染后可见文字统计（issue #890）：Markdown 标记、链接目标、
 	// 图片与贴纸 token 不计入，纯图片/纯链接内容不能绕过下限。
 	visibleLength := markdown2html.VisibleTextLength(req.Params.Content)
@@ -226,8 +238,7 @@ func writeTopic(req component.BetterRequest[WriteTopicReq], agent bool) componen
 
 	}
 
-	maxLength := postingConfig.TextControl.MaxPostLength
-	if visibleLength > maxLength || utf8.RuneCountInString(req.Params.Content) > postSourceLimit(maxLength) {
+	if visibleLength > maxLength {
 		return component.FailResponseCode(
 			component.MessageTopicContentTooLong,
 
@@ -543,6 +554,17 @@ func createPost(req component.BetterRequest[CreatePostReq], agent bool) componen
 	}
 
 	content := strings.TrimSpace(req.Params.Content)
+	// 源文本护栏是纯字节扫描，先于 VisibleTextLength 的 goldmark 解析执行：
+	// 注定超限的请求体（如 2 MiB 链接目标）零解析成本被拒。
+	maxLength := postingConfig.TextControl.MaxPostLength
+	if utf8.RuneCountInString(content) > postSourceLimit(maxLength) {
+		return component.FailResponseCode(
+			component.MessageCommentContentTooLong,
+
+			component.MessageParams{"maxLength": maxLength})
+
+	}
+
 	// 长度按渲染后可见文字统计（issue #890），与正文校验同一口径。
 	visibleLength := markdown2html.VisibleTextLength(content)
 	if visibleLength < postingConfig.TextControl.MinPostLength {
@@ -554,8 +576,7 @@ func createPost(req component.BetterRequest[CreatePostReq], agent bool) componen
 
 	}
 
-	maxLength := postingConfig.TextControl.MaxPostLength
-	if visibleLength > maxLength || utf8.RuneCountInString(content) > postSourceLimit(maxLength) {
+	if visibleLength > maxLength {
 		return component.FailResponseCode(
 			component.MessageCommentContentTooLong,
 
@@ -708,6 +729,17 @@ func UpdatePost(req component.BetterRequest[UpdatePostReq]) component.Response {
 	}
 
 	content := strings.TrimSpace(req.Params.Content)
+	// 源文本护栏是纯字节扫描，先于 VisibleTextLength 的 goldmark 解析执行：
+	// 注定超限的请求体（如 2 MiB 链接目标）零解析成本被拒。
+	maxLength := postingConfig.TextControl.MaxPostLength
+	if utf8.RuneCountInString(content) > postSourceLimit(maxLength) {
+		return component.FailResponseCode(
+			component.MessageCommentContentTooLong,
+
+			component.MessageParams{"maxLength": maxLength})
+
+	}
+
 	// 长度按渲染后可见文字统计（issue #890），与正文校验同一口径。
 	visibleLength := markdown2html.VisibleTextLength(content)
 	if visibleLength < postingConfig.TextControl.MinPostLength {
@@ -719,8 +751,7 @@ func UpdatePost(req component.BetterRequest[UpdatePostReq]) component.Response {
 
 	}
 
-	maxLength := postingConfig.TextControl.MaxPostLength
-	if visibleLength > maxLength || utf8.RuneCountInString(content) > postSourceLimit(maxLength) {
+	if visibleLength > maxLength {
 		return component.FailResponseCode(
 			component.MessageCommentContentTooLong,
 
