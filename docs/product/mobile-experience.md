@@ -84,10 +84,24 @@ ordered after the active route in the accessibility tree so iOS does not hide it
   next controls when expanded. The banner starts as an expandable single-line ticker; its state
   is shared across the latest, popular and trending tabs. Assistive navigation and reduced motion
   disable automatic rotation. Refresh replaces the active announcement safely.
-- `Current`: feed body text uses 17 logical pixels; Markdown reading and publishing body text use
-  18 pixels with a 1.55 line height and system text scaling. Code uses 16 pixels and tables use
-  17 pixels; headings keep a distinct hierarchy and follow the active theme. The first post supports
-  text selection. Feed cards use
+- `Current`: feed body text uses 17 logical pixels. Post Markdown, server-rendered Wiki HTML and
+  course-review HTML all derive their reading typography from one shared rich-content profile rather
+  than from per-surface hard-coded sizes: body text keeps the 17-pixel design baseline, headings are
+  relative ratios (H1–H4 ≈ 1.45/1.30/1.18/1.08 × body), inline code and code blocks are one step
+  smaller, tables inherit the body size, and course reviews use the same profile at a compact
+  ~15.5-pixel baseline. The first post supports text selection.
+- `Current`: reading text size is a user preference (Settings → Appearance, 80%–140%, default 100%)
+  that only affects rich content — posts, Wiki and course reviews — and is applied before the system
+  font scale, which still applies on top instead of being replaced or clamped. Repository code never
+  pins `TextScaler.noScaling` or a fixed text scale factor.
+- `Current`: fenced code and server-rendered `<pre>` blocks render through one shared code block with
+  syntax highlighting (light and dark themes), a language label, a copy action, and horizontal
+  scrolling inside the block itself; unknown languages or a failed highlight fall back to plain
+  monospace text. Wide Markdown and server-HTML tables keep natural column widths and scroll inside
+  their own region, so the page itself never scrolls sideways and an outer card cannot swallow the
+  gesture. Wiki bodies keep consuming the server `rendered_html` (heading ids, table of contents
+  anchors and relative URLs unchanged), and course reviews render the API's `contentHtml`, so the
+  server stays the only place that normalizes legacy review headings. Feed cards use
   compact vertical padding and one timestamp. Author, time and category labels share one metadata
   row. Long author names ellipsize, and the category group scrolls horizontally when space is tight,
   retaining separate touch targets.

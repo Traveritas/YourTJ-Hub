@@ -2490,6 +2490,36 @@ abstract class AppLocalizations {
   /// **'Use server-issued site colors'**
   String get settingsFollowSiteThemeDesc;
 
+  /// No description provided for @richContentCopyCode.
+  ///
+  /// In en, this message translates to:
+  /// **'Copy code'**
+  String get richContentCopyCode;
+
+  /// No description provided for @richContentCodeCopied.
+  ///
+  /// In en, this message translates to:
+  /// **'Code copied'**
+  String get richContentCodeCopied;
+
+  /// No description provided for @settingsReadingTextSize.
+  ///
+  /// In en, this message translates to:
+  /// **'Reading text size'**
+  String get settingsReadingTextSize;
+
+  /// No description provided for @settingsReadingTextSizeDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Applies to posts, Wiki and course reviews. System font scaling still applies.'**
+  String get settingsReadingTextSizeDesc;
+
+  /// No description provided for @settingsReadingTextSizeReset.
+  ///
+  /// In en, this message translates to:
+  /// **'Reset to 100%'**
+  String get settingsReadingTextSizeReset;
+
   /// No description provided for @entryCourses.
   ///
   /// In en, this message translates to:

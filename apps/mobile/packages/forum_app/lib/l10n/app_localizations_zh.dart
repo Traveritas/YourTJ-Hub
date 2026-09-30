@@ -1302,6 +1302,21 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settingsFollowSiteThemeDesc => '使用服务器下发的站点配色';
 
   @override
+  String get richContentCopyCode => '复制代码';
+
+  @override
+  String get richContentCodeCopied => '已复制代码';
+
+  @override
+  String get settingsReadingTextSize => '阅读字号';
+
+  @override
+  String get settingsReadingTextSizeDesc => '仅作用于帖子、Wiki 与课程评价正文；系统字体缩放仍然生效。';
+
+  @override
+  String get settingsReadingTextSizeReset => '恢复默认';
+
+  @override
   String get entryCourses => '课程';
 
   @override
