@@ -1,5 +1,4 @@
 import '../../user_blocks.dart';
-import '../../analytics/analytics_setting.dart';
 import 'dart:async';
 
 import 'package:flutter/material.dart';
@@ -1062,8 +1061,6 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
               title: l10n.settingsDataStorage,
               onTap: () => _openSection(_SettingsTab.privacy),
             ),
-            const GfDivider(),
-            const AnalyticsSetting(),
             const GfDivider(),
             _categoryRow(
               symbol: 'info',
