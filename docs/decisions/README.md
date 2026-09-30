@@ -136,3 +136,4 @@ A decision starts `Proposed`. Once implemented, its status becomes `Accepted` an
 - [0048](0048-mobile-storage-lifecycle.md) — 按身份、保留期和字节预算管理缓存；加密事务库分离本机作品，清理可恢复并拒绝旧请求回填。
 
 - [0049](0049-android-first-login-notification-permission.md) — Android 登录后一次性请求系统通知权限，并在授权后开启 JPush。
+- [0050](0050-android-stable-download-links.md) — Android 使用独立 mobile-latest 固定下载入口，保留版本化安装包和服务端 Latest。
