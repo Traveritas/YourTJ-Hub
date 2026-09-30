@@ -60,15 +60,15 @@ private func normalizedEmptyState(_ value: String?) -> String {
     value == "needsData" ? "needsRefresh" : value ?? "needsRefresh"
 }
 
-private func title(_ state: String) -> String {
+private func title(_ state: String, isTomorrow: Bool = false) -> String {
     let zh = Locale.current.languageCode == "zh"
     if zh {
         switch state {
         case "inClass": return "正在上课"
         case "upcoming", "break": return "下一节"
         case "finished": return "今日课程已结束"
-        case "noClasses": return "今天暂无课程安排"
-        case "holiday": return "今天放假"
+        case "noClasses": return isTomorrow ? "明天暂无课程安排" : "今天暂无课程安排"
+        case "holiday": return isTomorrow ? "明天放假" : "今天放假"
         case "noneUpcoming": return "近期暂无课程安排"
         case "stale": return "课表可能已更新"
         case "unbound": return "绑定同济账号后显示课表"
@@ -81,8 +81,7 @@ private func title(_ state: String) -> String {
     case "inClass": return "In class"
     case "upcoming", "break": return "Up next"
     case "finished": return "Classes finished for today"
-    case "noClasses": return "No classes today"
-    case "holiday": return "No classes today"
+    case "noClasses", "holiday": return isTomorrow ? "No classes tomorrow" : "No classes today"
     case "noneUpcoming": return "No classes in the next 8 days"
     case "stale": return "Schedule may have changed"
     case "unbound": return "Bind your Tongji account to show classes"
@@ -130,11 +129,11 @@ private func scheduleAccessibilityText(
     return [
         title(state),
         today.map { dayAccessibilityText(zh ? "今天" : "Today", day: $0, emptyState: state) },
-        tomorrow.map { dayAccessibilityText(zh ? "明天" : "Tomorrow", day: $0) },
+        tomorrow.map { dayAccessibilityText(zh ? "明天" : "Tomorrow", day: $0, isTomorrow: true) },
     ].compactMap { $0 }.joined(separator: "，")
 }
 
-private func dayAccessibilityText(_ heading: String, day: Projection.Day, emptyState: String? = nil) -> String {
+private func dayAccessibilityText(_ heading: String, day: Projection.Day, emptyState: String? = nil, isTomorrow: Bool = false) -> String {
     let courses = day.courses.map {
         [$0.name, courseTime($0), $0.campus, $0.room, $0.teacher]
             .filter { !$0.isEmpty }.joined(separator: "，")
@@ -142,9 +141,9 @@ private func dayAccessibilityText(_ heading: String, day: Projection.Day, emptyS
     let empty: String?
     if courses.isEmpty {
         switch day.kind {
-        case "holiday": empty = day.adjustmentLabel ?? title("holiday")
+        case "holiday": empty = day.adjustmentLabel ?? title("holiday", isTomorrow: isTomorrow)
         case "unknown": empty = title("needsRefresh")
-        default: empty = title(emptyState ?? "noClasses")
+        default: empty = title(emptyState ?? "noClasses", isTomorrow: isTomorrow)
         }
     } else {
         empty = nil
@@ -480,7 +479,7 @@ private struct MediumDayColumn: View {
                 Text(Locale.current.languageCode == "zh" ? "明天暂无课程安排" : "No classes tomorrow")
                     .font(.system(size: 11, weight: .medium))
             } else {
-                EmptyDay(state: state, day: day, hasProjection: hasProjection)
+                EmptyDay(state: state, day: day, hasProjection: hasProjection, isTomorrow: isTomorrow)
             }
         }
         .frame(maxWidth: .infinity, alignment: .topLeading)
@@ -560,7 +559,7 @@ private struct LargeDayColumn: View {
             if let day, !day.courses.isEmpty {
                 FittingCourses(courses: day.courses, currentId: currentId, preferredCount: 3)
             } else {
-                EmptyDay(state: emptyState, day: day, hasProjection: hasProjection)
+                EmptyDay(state: emptyState, day: day, hasProjection: hasProjection, isTomorrow: title == "明天")
             }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
@@ -574,7 +573,7 @@ private struct LargeDayColumn: View {
         guard let day else {
             return "\(heading)，\(zh ? "需要更新课表" : "Schedule needs an update")"
         }
-        return dayAccessibilityText(heading, day: day, emptyState: emptyState)
+        return dayAccessibilityText(heading, day: day, emptyState: emptyState, isTomorrow: title == "明天")
     }
 
     private var emptyState: String {
@@ -629,10 +628,11 @@ private struct EmptyDay: View {
     let state: String
     let day: Projection.Day?
     let hasProjection: Bool
+    var isTomorrow = false
 
     var body: some View {
         VStack(alignment: .leading, spacing: 3) {
-            Text(state == "holiday" ? day?.adjustmentLabel ?? title(state) : title(state))
+            Text(state == "holiday" ? day?.adjustmentLabel ?? title(state, isTomorrow: isTomorrow) : title(state, isTomorrow: isTomorrow))
                 .font(.subheadline.weight(.semibold))
             if let support = support(state, hasProjection: hasProjection) {
                 Text(support).font(.caption2).foregroundColor(.secondary)
