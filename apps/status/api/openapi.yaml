@@ -16,6 +16,8 @@ paths:
         and device reports hourly. Data is stale after 150 seconds (current), twenty minutes
         (history/traffic) or seventy minutes (devices). Retention is fifteen minutes, one hour
         and three hours respectively. fetchedAt is never advanced on failure.
+        Resource history remains available independently when current metrics expire;
+        the server envelope then has current/cpuCores null and preserves history's own timestamp.
         Browsers poll every sixty seconds; the CDN caches responses for at most thirty seconds.
         The browser rechecks freshness independently of the CDN cache.
       parameters:

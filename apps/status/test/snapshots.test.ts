@@ -49,6 +49,19 @@ it('separates live metrics from history freshness and never invokes upstreams on
     expect(response.headers.get('Netlify-Vary')).toBe('query=range|serverRange|deviceRange')
   } finally { fetcher.mockRestore() }
 })
+it.each([false, true])('serves retained resource history without current readings (previous current: %s)', async hasCurrent => {
+  const { store } = memoryStore()
+  if (hasCurrent) await store.write(cacheKey(config, 'komari', 'current'), { attemptedAt: now, fetchedAt: new Date(now).toISOString(), data: fixture.server.data, failed: false })
+  const history = { history: fixture.server.data!.history, historyAvailable: true }
+  await store.write(cacheKey(config, 'komari', 'history-1h'), { attemptedAt: now, fetchedAt: new Date(now).toISOString(), data: history, failed: false })
+  const read = async (age: number) => (await (await serveSnapshot(new Request('https://status.example.com/api/status'), store, config, now + age)).json()).result as StatusSnapshot
+  for (const age of [16 * 60_000, 21 * 60_000, 60 * 60_000]) {
+    const result = await read(age)
+    expect(result.server).toMatchObject({ state: 'unavailable', data: { current: null, cpuCores: null, ...history, historyFetchedAt: new Date(now).toISOString(), historyStale: age > 20 * 60_000 } })
+    expect(result.server.fetchedAt).toBeUndefined()
+  }
+  expect((await read(60 * 60_000 + 1)).server).toEqual({ state: 'unavailable', data: null })
+})
 it('does not read previous source data when configuration is changed or disabled', async () => {
   const {store}=memoryStore()
   await store.write(cacheKey(config,'uptime','current'),{attemptedAt:now,fetchedAt:new Date(now).toISOString(),data:fixture.uptime.data,failed:false})

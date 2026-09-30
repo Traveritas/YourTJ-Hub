@@ -28,11 +28,15 @@ let controller: AbortController | undefined
 let timer: ReturnType<typeof setTimeout> | undefined
 let clock: ReturnType<typeof setInterval> | undefined
 
-const server = computed(() => retainedData('server'))
+const currentServer = computed(() => retainedData('server'))
 // Keep current readings visible during a scope change, but never relabel an old curve.
-const historyServer = computed(() => snapshot.value?.serverRange === serverRange.value && isRecentStatusTime(server.value?.historyFetchedAt, now.value, HISTORY_POLICY.retainFor) ? server.value : null)
-const historyStale = computed(() => server.value?.historyStale || !isRecentStatusTime(server.value?.historyFetchedAt, now.value, HISTORY_POLICY.freshFor))
-const current = computed(() => server.value?.current)
+const historyServer = computed(() => {
+  const data = snapshot.value?.server.data
+  return snapshot.value?.serverRange === serverRange.value && isRecentStatusTime(data?.historyFetchedAt, now.value, HISTORY_POLICY.retainFor) ? data : null
+})
+const server = computed(() => currentServer.value ?? historyServer.value)
+const historyStale = computed(() => historyServer.value?.historyStale || !isRecentStatusTime(historyServer.value?.historyFetchedAt, now.value, HISTORY_POLICY.freshFor))
+const current = computed(() => currentServer.value?.current)
 const traffic = computed(() => snapshot.value?.range === range.value ? retainedData('traffic') : null)
 const devices = computed(() => snapshot.value?.deviceRange === deviceRange.value ? retainedData('devices') : null)
 const serverFresh = computed(() => sourceState('server') === 'sourceOk')
@@ -172,7 +176,7 @@ onDeactivated(stop)
 onBeforeUnmount(stop)
 
 const resources = computed(() => [
-  { key: 'cpu', icon: Cpu, value: percent(current.value?.cpu), amount: current.value?.cpu, detail: server.value ? t('status.cores', { count: server.value.cpuCores }) : '—' },
+  { key: 'cpu', icon: Cpu, value: percent(current.value?.cpu), amount: current.value?.cpu, detail: currentServer.value?.cpuCores != null ? t('status.cores', { count: currentServer.value.cpuCores }) : '—' },
   { key: 'memory', icon: Database, value: percent(usage(current.value?.memoryUsed, current.value?.memoryTotal)), amount: usage(current.value?.memoryUsed, current.value?.memoryTotal), detail: t('status.usedOf', { used: bytes(current.value?.memoryUsed), total: bytes(current.value?.memoryTotal) }) },
   { key: 'disk', icon: HardDrive, value: percent(usage(current.value?.diskUsed, current.value?.diskTotal)), amount: usage(current.value?.diskUsed, current.value?.diskTotal), detail: t('status.usedOf', { used: bytes(current.value?.diskUsed), total: bytes(current.value?.diskTotal) }) },
 ])
@@ -262,11 +266,11 @@ function sourceStatusClass(source: 'server' | 'traffic' | 'uptime') {
             <button v-for="option in serverRangeOptions" :key="option.value" type="button" :aria-pressed="serverRange === option.value" @click="serverRange = option.value">{{ option.label }}</button>
           </div>
         </div>
-        <StatusResourceChart v-if="historyServer?.historyAvailable && historyServer.history.length" :points="historyServer.history" :as-of="server?.historyFetchedAt ?? snapshot?.server.fetchedAt" :range="serverRange" />
+        <StatusResourceChart v-if="historyServer?.historyAvailable && historyServer.history.length" :points="historyServer.history" :as-of="historyServer.historyFetchedAt" :range="serverRange" />
         <div v-else class="status-chart-empty"><Activity :size="26" :stroke-width="1.3" /><span>{{ t(loading && !historyServer ? 'status.checking' : historyServer?.historyAvailable ? 'status.emptyChart' : 'status.chartUnavailable') }}</span></div>
       </div>
       <div class="status-host-meta"><Clock3 :size="14" /><span>{{ t('status.uptime') }} {{ duration(current?.uptime, true) }}</span></div>
-      <p v-if="server && historyStale" class="status-notice">{{ t('status.historyStale') }}</p>
+      <p v-if="historyServer && historyStale" class="status-notice">{{ t('status.historyStale') }}</p>
       <p class="status-probe-note">{{ t('status.historyNote') }}</p>
       <div class="status-panel-source status-source"><span>{{ t('status.dataSource') }} <b>Komari</b><span class="source-badge" :class="{ connected: sourceState('server') === 'sourceOk' }">{{ t(`status.${sourceState('server')}`) }}</span></span><time>{{ t('status.sampleTime', { time: dateTime(current?.observedAt) }) }}</time></div>
     </section>

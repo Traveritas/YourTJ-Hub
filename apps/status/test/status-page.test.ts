@@ -101,6 +101,30 @@ it('shows resource chart tooltips to keyboard users', async () => {
   expect(wrapper.find('.resource-tooltip').exists()).toBe(false)
 })
 
+it('keeps resource history after current readings expire during an API outage, then expires it independently', async () => {
+  const wrapper = await open()
+  vi.mocked(getStatus).mockRejectedValue(new Error('offline'))
+  await vi.advanceTimersByTimeAsync(16 * 60_000)
+  expect(wrapper.get('#status-signal').text()).toBe('暂无法确认状态')
+  expect(wrapper.get('.status-resource strong').text()).toBe('—')
+  expect(wrapper.find('.resource-history').exists()).toBe(true)
+  await vi.advanceTimersByTimeAsync(5 * 60_000)
+  expect(wrapper.find('.resource-history').exists()).toBe(true)
+  expect(wrapper.get('.status-infra').text()).toContain('历史数据暂未更新')
+  await vi.advanceTimersByTimeAsync(40 * 60_000)
+  expect(wrapper.find('.resource-history').exists()).toBe(false)
+})
+
+it('renders a history-only response without treating the probe as healthy', async () => {
+  const data = JSON.parse(readFileSync('test/fixtures/status-history-only.json', 'utf8')).result as StatusSnapshot
+  vi.mocked(getStatus).mockResolvedValue(data)
+  const wrapper = await open()
+  expect(wrapper.get('#status-signal').text()).toBe('暂无法确认状态')
+  expect(wrapper.get('.status-resource strong').text()).toBe('—')
+  expect(wrapper.get('.status-resource p').text()).toBe('—')
+  expect(wrapper.find('.resource-history').exists()).toBe(true)
+})
+
 it('switches resource history independently and hides the previous scope while loading', async () => {
   const wrapper = await open()
   let resolveDay!: (value: StatusSnapshot) => void

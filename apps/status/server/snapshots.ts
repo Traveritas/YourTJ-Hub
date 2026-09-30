@@ -36,7 +36,13 @@ export async function readSnapshot(store: SnapshotStore, config: Config, range: 
     read<StatusTraffic>('umami', range, HISTORY_POLICY), read<StatusUptime>('uptime', 'current', CURRENT_POLICY),
     devicesConfigured(config) ? read<StatusDevices>('umami', `devices-${deviceRange}`, DEVICE_POLICY) : Promise.resolve<Source<StatusDevices>>({ state: 'unconfigured', data: null }),
   ])
-  if (server.data) server.data = { ...server.data, history: history.data?.history ?? [], historyAvailable: history.data?.historyAvailable ?? false, ...(history.fetchedAt ? { historyFetchedAt: history.fetchedAt } : {}), historyStale: history.state === 'stale' }
+  // Keep the history envelope even when current readings are absent or expired.
+  // The source state/timestamp still describe current readings, never history.
+  if (server.data || history.data) server.data = {
+    ...(server.data ?? { name: '', region: '', cpuCores: null, current: null }),
+    history: history.data?.history ?? [], historyAvailable: history.data?.historyAvailable ?? false,
+    historyFetchedAt: history.fetchedAt, historyStale: history.state === 'stale',
+  }
   return { range, serverRange, deviceRange, refreshAfter: POLL_SECONDS, server, traffic, uptime, devices }
 }
 export async function serveSnapshot(request: Request, store: SnapshotStore, config: Config, now = Date.now()): Promise<Response> {
