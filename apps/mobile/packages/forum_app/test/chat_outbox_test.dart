@@ -21,6 +21,7 @@ class _Chat extends ChatRepository {
   final attempts = <Completer<int>>[];
   final keys = <String?>[];
   final replyTargets = <int?>[];
+  final types = <int>[];
   @override
   Future<int> sendMessage({
     required int peerId,
@@ -30,6 +31,7 @@ class _Chat extends ChatRepository {
     int? replyToMessageId,
   }) {
     keys.add(clientMessageId);
+    types.add(msgType);
     replyTargets.add(replyToMessageId);
     final result = Completer<int>();
     attempts.add(result);
@@ -47,6 +49,28 @@ ChatMessagePayload message(int id) => ChatMessagePayload(
   isSelf: true,
 );
 void main() {
+  test(
+    'image acknowledgement matches image type rather than a URL in text',
+    () async {
+      final repo = _Chat();
+      final outbox = ChatOutbox(repo, 2);
+      final image = outbox.enqueue('/file/img/photo.png', 10, msgType: 2);
+      final send = outbox.send(image);
+      repo.attempts.single.complete(9);
+      await send;
+      expect(repo.types, [2]);
+      outbox.reconcile([
+        message(11).copyWith(content: image.content, msgType: 1),
+      ]);
+      expect(outbox.items, [image]);
+      outbox.reconcile([
+        message(12).copyWith(content: image.content, msgType: 2),
+      ]);
+      expect(outbox.items, isEmpty);
+      outbox.dispose();
+    },
+  );
+
   test(
     'failed text survives, retry is single-flight and success stays until server echo',
     () async {

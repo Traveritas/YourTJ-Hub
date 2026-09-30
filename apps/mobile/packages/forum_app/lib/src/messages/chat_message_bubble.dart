@@ -11,6 +11,7 @@ import '../widgets/sticker_message_span.dart';
 import 'message_content.dart';
 import 'swipe_reply.dart';
 import 'chat_reply.dart';
+import 'chat_image.dart';
 
 /// Shared chat body for the live conversation and read-only forwarded history.
 class ChatMessageBubble extends ConsumerWidget {
@@ -27,6 +28,7 @@ class ChatMessageBubble extends ConsumerWidget {
     this.onQuoteTap,
     this.content,
     this.selectable = true,
+    this.msgType = 1,
   });
 
   final GlobalKey? bubbleKey;
@@ -40,10 +42,12 @@ class ChatMessageBubble extends ConsumerWidget {
   final VoidCallback? onQuoteTap;
   final Widget? content;
   final bool selectable;
+  final int msgType;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final quote = content == null ? parseChatReplyQuote(text) : null;
+    final image = msgType == 2 && isChatImageUrl(text);
+    final quote = content == null && !image ? parseChatReplyQuote(text) : null;
     return ResolvedStickerContent(
       content: text,
       errorAlignment: mine ? CrossAxisAlignment.end : CrossAxisAlignment.start,
@@ -57,38 +61,45 @@ class ChatMessageBubble extends ConsumerWidget {
           child: child,
         ),
         text: text,
-        showBubble: content != null || !isStickerOnlyMessage(text, stickers),
-        selectable: selectable,
+        showBubble:
+            content != null ||
+            (!image && !isStickerOnlyMessage(text, stickers)),
+        selectable: selectable && !image,
         onLongPress: onLongPress,
         copyMessageLabel: AppLocalizations.of(context).messagesCopyAll,
         content:
             content ??
-            _MessageContentWithQuote(
-              text: quote?.body ?? text,
-              quote: quote,
-              replyToMessageId: replyToMessageId,
-              onQuoteTap: onQuoteTap,
-              stickers: stickers,
-              mine: mine,
-              onOpenLink: (url) async {
-                try {
-                  await LinkNavigation.open(
-                    context,
-                    url,
-                    baseUrl: ref.read(apiClientProvider).baseUrl,
-                  );
-                } catch (error) {
-                  if (context.mounted) {
-                    showGfToast(
-                      context,
-                      resolveErrorMessage(AppLocalizations.of(context), error),
-                      error: true,
-                    );
-                  }
-                }
-              },
-              deferStickerLongPress: onLongPress != null,
-            ),
+            (image
+                ? ChatImage(url: text)
+                : _MessageContentWithQuote(
+                    text: quote?.body ?? text,
+                    quote: quote,
+                    replyToMessageId: replyToMessageId,
+                    onQuoteTap: onQuoteTap,
+                    stickers: stickers,
+                    mine: mine,
+                    onOpenLink: (url) async {
+                      try {
+                        await LinkNavigation.open(
+                          context,
+                          url,
+                          baseUrl: ref.read(apiClientProvider).baseUrl,
+                        );
+                      } catch (error) {
+                        if (context.mounted) {
+                          showGfToast(
+                            context,
+                            resolveErrorMessage(
+                              AppLocalizations.of(context),
+                              error,
+                            ),
+                            error: true,
+                          );
+                        }
+                      }
+                    },
+                    deferStickerLongPress: onLongPress != null,
+                  )),
         mine: mine,
         time: time,
         maxWidthFactor: maxWidthFactor,
@@ -184,7 +195,9 @@ class _ChatReplyQuoteBlock extends StatelessWidget {
                   Container(
                     width: 1,
                     color:
-                        (mine ? colors.messageOutgoingContent : colors.iconMuted)
+                        (mine
+                                ? colors.messageOutgoingContent
+                                : colors.iconMuted)
                             .withValues(alpha: 0.72),
                   ),
                   const SizedBox(width: 8),
