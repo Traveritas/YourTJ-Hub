@@ -46,13 +46,19 @@ Web/API/schema: `Current`. `/campus` 是登录用户自己的校园工作台。�
 |---|---|
 | Android 2×1、4×2、可扩展 4×4 | 小尺寸显示当前／下一节，中尺寸显示今天，大尺寸并列今天与明天。 |
 | Android 4×3 课程时间线 | 顶部日期、周次与星期，可独立切换今天／明天；课程列表可滚动且不显示滚动条，条目包含节次、时间、课程、教室和教师姓名，不含教师工号。 |
-| iOS systemSmall | 当前／下一节附近两门完整课程与一门名称／开始时间缩略项；不足三门按实际数量，不显示进度横条。 |
-| iOS systemMedium | 日期标题在顶栏；当天最多两门时分栏展示今天／明天，否则当天课程按时间接续排列于两栏。 |
-| iOS systemLarge | 并列展示今天与明天。 |
+| iOS systemSmall | 从正在进行或下一节开始，显示该教学日尚未结束的两门完整课程与一门名称／开始时间缩略项；不足三门按实际数量，今日结束后寻找后续教学日，不回填已结束课程。 |
+| iOS systemMedium | 日期标题在顶栏；当天剩余最多两门时分栏展示今天／明天，否则剩余课程按时间接续排列于两栏。 |
+| iOS systemLarge | 并列展示今天剩余课程与明天课表。 |
 
-iOS 条目显示课程、教室、教师和起止时间，省略校区并缩写教室名；色条沿用 Web 课表色阶。
+iOS 条目显示课程原名、教室、教师和起止时间，课程名前不追加「正在上课」「下一节」「明日」等前缀；
+省略校区并缩写教室名，色条沿用 Web 课表色阶。
 课程不足不填造条目，空间不足按完整课程项计数收尾。每日标题显示周次、星期和简写日期，
 底部显示最后更新时间。Android 12–14 的系统选择器预览使用 4×2 双日和 2×1 下一节布局。
+
+`Current`：iOS 三种尺寸都按时间线条目的时间筛选，保留正在进行和尚未开始的课程，在课程结束时移除，
+不必打开 App 或重新联网。今日课表区分「今日课程已结束」与「今天暂无课程安排」，读屏使用同一份剩余
+课程和状态。中尺寸按剩余门数切换双栏，大尺寸保留明天预告；上海午夜切换教学日。WidgetKit 决定实际
+呈现时机，时间线不保证精确到秒，参见 [Apple Timeline](https://developer.apple.com/documentation/widgetkit/timeline)。
 
 小组件只读主 App 完整校园快照派生的 schema 2 最小投影，永不联网。投影保留服务端权威的当日结果，
 规则可靠时携带八天滚动窗口；原生 timeline／本地可延迟 alarm 推进上下课与上海午夜状态。
@@ -70,6 +76,7 @@ iOS 条目显示课程、教室、教师和起止时间，省略校区并缩写�
 `Partial`：自动化覆盖投影、身份清理、跨日与原生结构，但 OEM、Doze、重启、系统添加流程和 iOS 真机渲染
 仍需设备矩阵验证。设备要求见[移动发布指南](../operations/mobile-releases.md)；现有证据包括
 [原生结构测试](../../apps/mobile/packages/forum_app/test/native_widget_structure_test.dart)与
+[iOS 课程时间线测试](../../apps/mobile/packages/forum_app/ios/RunnerTests/ScheduleProjectionTests.swift)及
 [设置刷新测试](../../apps/mobile/packages/forum_app/test/schedule_widget_settings_test.dart)。
 设计理由见[设备快照决策](../decisions/0035-campus-device-snapshot-and-schedule-widgets.md)。
 本地课表与原生投影的设计参考保留于 [TJ-Class-Schedule](https://github.com/qp338113/TJ-Class-Schedule)、
