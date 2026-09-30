@@ -28,7 +28,7 @@ StatusSnapshot:
         sample.
     refreshAfter:
       type: integer
-      const: 30
+      const: 60
     server:
       $ref: '#/StatusServerSource'
     traffic:

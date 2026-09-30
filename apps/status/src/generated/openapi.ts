@@ -13,7 +13,7 @@ export interface paths {
         };
         /**
          * Read status snapshots
-         * @description Reads persisted snapshots only; visitors cannot trigger upstream collection. Current resource and uptime sources refresh every minute, history and traffic every five minutes. Data older than 150 seconds (current) or ten minutes (history/traffic) is stale; all data expires after fifteen minutes. fetchedAt is never advanced on failure. The browser rechecks freshness independently of the CDN cache.
+         * @description Reads persisted snapshots only; visitors cannot trigger upstream collection. Current resource and uptime sources refresh every minute, history and traffic every fifteen minutes, and device reports hourly. Data is stale after 150 seconds (current), twenty minutes (history/traffic) or seventy minutes (devices). Retention is fifteen minutes, one hour and three hours respectively. fetchedAt is never advanced on failure. Browsers poll every sixty seconds; the CDN caches responses for at most thirty seconds. The browser rechecks freshness independently of the CDN cache.
          */
         get: operations["getStatus"];
         put?: never;
@@ -66,7 +66,7 @@ export interface components {
              */
             serverRange: "1h" | "6h" | "24h" | "7d";
             /** @constant */
-            refreshAfter: 30;
+            refreshAfter: 60;
             server: components["schemas"]["StatusServerSource"];
             traffic: components["schemas"]["StatusTrafficSource"];
             uptime: components["schemas"]["StatusUptimeSource"];

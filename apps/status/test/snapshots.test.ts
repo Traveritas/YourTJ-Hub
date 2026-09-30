@@ -35,7 +35,7 @@ it('a slow older run cannot overwrite the newer successful snapshot', async () =
 })
 it('separates live metrics from history freshness and never invokes upstreams on reads', async () => {
   const {store}=memoryStore()
-  for (const [provider,part,data,age] of [ ['komari','current',fixture.server.data,0],['komari','history-24h',{history:fixture.server.data!.history,historyAvailable:true},660000],['umami','7d',fixture.traffic.data,240000],['uptime','current',fixture.uptime.data,0] ] as const) {
+  for (const [provider,part,data,age] of [ ['komari','current',fixture.server.data,0],['komari','history-24h',{history:fixture.server.data!.history,historyAvailable:true},1260000],['umami','7d',fixture.traffic.data,240000],['uptime','current',fixture.uptime.data,0] ] as const) {
     await store.write(cacheKey(config,provider,part),{attemptedAt:now-age,fetchedAt:new Date(now-age).toISOString(),data,failed:false})
   }
   const fetcher=vi.spyOn(globalThis,'fetch').mockRejectedValue(new Error('must not fetch'))
@@ -45,7 +45,7 @@ it('separates live metrics from history freshness and never invokes upstreams on
     expect(result.server.state).toBe('ok');expect(result.server.data!.historyStale).toBe(true)
     expect(result.traffic.state).toBe('ok');expect(result.uptime.state).toBe('ok')
     expect(fetcher).not.toHaveBeenCalled()
-    expect(response.headers.get('Netlify-CDN-Cache-Control')).toContain('max-age=15')
+    expect(response.headers.get('Netlify-CDN-Cache-Control')).toContain('max-age=30')
     expect(response.headers.get('Netlify-Vary')).toBe('query=range|serverRange|deviceRange')
   } finally { fetcher.mockRestore() }
 })

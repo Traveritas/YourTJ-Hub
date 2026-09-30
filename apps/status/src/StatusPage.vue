@@ -5,6 +5,7 @@ import { useI18n } from 'vue-i18n'
 import type { StatusRange, StatusServerRange, StatusSnapshot } from '@/types'
 import { getStatus } from '@/runtime/status-api'
 import { isRecentStatusTime } from '@/runtime/status-time'
+import { CURRENT_POLICY, HISTORY_POLICY, POLL_SECONDS, sourcePolicies } from '@/runtime/status-policy'
 import PageHeader from '@/components/PageHeader.vue'
 import StatusTrafficChart from '@/components/StatusTrafficChart.vue'
 import StatusResourceChart from '@/components/StatusResourceChart.vue'
@@ -27,16 +28,22 @@ let controller: AbortController | undefined
 let timer: ReturnType<typeof setTimeout> | undefined
 let clock: ReturnType<typeof setInterval> | undefined
 
-const server = computed(() => snapshot.value?.server.data)
+const server = computed(() => retainedData('server'))
 // Keep current readings visible during a scope change, but never relabel an old curve.
-const historyServer = computed(() => snapshot.value?.serverRange === serverRange.value ? server.value : null)
+const historyServer = computed(() => snapshot.value?.serverRange === serverRange.value && isRecentStatusTime(server.value?.historyFetchedAt, now.value, HISTORY_POLICY.retainFor) ? server.value : null)
+const historyStale = computed(() => server.value?.historyStale || !isRecentStatusTime(server.value?.historyFetchedAt, now.value, HISTORY_POLICY.freshFor))
 const current = computed(() => server.value?.current)
-const traffic = computed(() => snapshot.value?.range === range.value ? snapshot.value.traffic.data : null)
-const devices = computed(() => snapshot.value?.deviceRange === deviceRange.value ? snapshot.value.devices.data : null)
+const traffic = computed(() => snapshot.value?.range === range.value ? retainedData('traffic') : null)
+const devices = computed(() => snapshot.value?.deviceRange === deviceRange.value ? retainedData('devices') : null)
 const serverFresh = computed(() => sourceState('server') === 'sourceOk')
+const uptimeSource = computed(() => {
+  const value = snapshot.value?.uptime
+  return value?.data && !isRecentStatusTime(value.fetchedAt, now.value, CURRENT_POLICY.retainFor)
+    ? { state: 'unavailable' as const, data: null } : value
+})
 const signal = computed(() => {
   if (!snapshot.value && loading.value) return 'checking'
-  const uptime = snapshot.value?.uptime
+  const uptime = uptimeSource.value
   if (uptime && uptime.state !== 'unconfigured') {
     const states = uptime.data?.monitors.map(monitor => uptimeMonitorState(monitor, sourceState('uptime') === 'sourceOk', now.value)) ?? []
     if (!states.length) return 'unknown'
@@ -47,7 +54,7 @@ const signal = computed(() => {
     return 'servicesPending'
   }
   if (!serverFresh.value) return 'unknown'
-  return isRecentStatusTime(current.value?.observedAt, now.value, 150_000) ? 'live' : 'noSignal'
+  return isRecentStatusTime(current.value?.observedAt, now.value, CURRENT_POLICY.freshFor) ? 'live' : 'noSignal'
 })
 const signalPresentation = computed(() => {
   switch (signal.value) {
@@ -91,10 +98,16 @@ function duration(value: number | null | undefined, long = false) {
   return `${t('status.minutes', { count: Math.floor(value / 60) })} ${t('status.seconds', { count: Math.floor(value % 60) })}`
 }
 function usage(used: number | undefined, total: number | undefined) { return used != null && total ? Math.min(100, used / total * 100) : undefined }
+function retainedData<K extends 'server' | 'traffic' | 'devices'>(key: K): StatusSnapshot[K]['data'] | null {
+  const value = snapshot.value?.[key]
+  return value && isRecentStatusTime(value.fetchedAt, now.value, sourcePolicies[key].retainFor) ? value.data : null
+}
 function sourceState(source: 'server' | 'traffic' | 'uptime' | 'devices') {
   const state = snapshot.value?.[source]?.state
   if (!state) return loading.value ? 'checking' : 'sourceUnavailable'
-  if (state === 'ok' && (failed.value || !isRecentStatusTime(snapshot.value?.[source]?.fetchedAt, now.value, source === 'traffic' || source === 'devices' ? 600_000 : 150_000))) return 'sourceStale'
+  const policy = sourcePolicies[source]
+  if ((state === 'ok' || state === 'stale') && !isRecentStatusTime(snapshot.value?.[source]?.fetchedAt, now.value, policy.retainFor)) return 'sourceUnavailable'
+  if (state === 'ok' && (failed.value || !isRecentStatusTime(snapshot.value?.[source]?.fetchedAt, now.value, policy.freshFor))) return 'sourceStale'
   return { ok: 'sourceOk', stale: 'sourceStale', unavailable: 'sourceUnavailable', unconfigured: 'sourceUnconfigured' }[state]
 }
 function sourceNote(source: 'server' | 'traffic' | 'devices') {
@@ -124,7 +137,7 @@ async function refresh() {
     if (request === sequence) {
       loading.value = false
       now.value = Date.now()
-      if (active && !document.hidden) timer = setTimeout(refresh, 30_000)
+      if (active && !document.hidden) timer = setTimeout(refresh, POLL_SECONDS * 1000)
     }
   }
 }
@@ -205,7 +218,7 @@ function sourceStatusClass(source: 'server' | 'traffic' | 'uptime') {
       </div>
     </section>
     <p v-if="failed" class="status-notice" role="alert">{{ t(snapshot ? 'status.loadFailed' : 'status.firstLoadFailed') }}</p>
-    <StatusUptime :source="snapshot?.uptime" :now="now" :failed="failed" :loading="loading" />
+    <StatusUptime :source="uptimeSource" :now="now" :failed="failed" :loading="loading" />
 
     <section class="status-panel status-traffic" aria-labelledby="traffic-title" :aria-busy="loading">
       <div class="status-panel-heading"><div><h2 id="traffic-title">{{ t('status.trafficTitle') }}</h2><p>{{ t('status.trafficDescription') }}</p></div><div class="status-range" role="group" :aria-label="t('status.rangeLabel')"><button v-for="option in rangeOptions" :key="option.value" type="button" :aria-pressed="range === option.value" @click="range = option.value">{{ option.label }}</button></div></div>
@@ -253,7 +266,7 @@ function sourceStatusClass(source: 'server' | 'traffic' | 'uptime') {
         <div v-else class="status-chart-empty"><Activity :size="26" :stroke-width="1.3" /><span>{{ t(loading && !historyServer ? 'status.checking' : historyServer?.historyAvailable ? 'status.emptyChart' : 'status.chartUnavailable') }}</span></div>
       </div>
       <div class="status-host-meta"><Clock3 :size="14" /><span>{{ t('status.uptime') }} {{ duration(current?.uptime, true) }}</span></div>
-      <p v-if="server?.historyStale" class="status-notice">{{ t('status.historyStale') }}</p>
+      <p v-if="server && historyStale" class="status-notice">{{ t('status.historyStale') }}</p>
       <p class="status-probe-note">{{ t('status.historyNote') }}</p>
       <div class="status-panel-source status-source"><span>{{ t('status.dataSource') }} <b>Komari</b><span class="source-badge" :class="{ connected: sourceState('server') === 'sourceOk' }">{{ t(`status.${sourceState('server')}`) }}</span></span><time>{{ t('status.sampleTime', { time: dateTime(current?.observedAt) }) }}</time></div>
     </section>
