@@ -116,6 +116,12 @@ migration. Migrations use versioned SQL independently of the Freezed generation 
 | Drafts, unsent chat and unsynchronized plans | `Current`: recoverable user work, excluded from eviction and clear-cache controls. Ordinary writing/plans use a separate transaction database; private-message drafts retain secure storage. |
 | Picker/upload work in progress | `Partial`: existing attachment queue behavior; this cache lifecycle does not claim durable restoration of every picker URI or an offline upload outbox. |
 
+`Current`: uploaded private-message image URLs and their idempotent send identifiers share the
+device-bound private draft store, scoped by API origin, numeric account and peer. They are written
+before chat/send and restored only for manual retry, then removed after acknowledgement. Clear-user-data
+and account deletion also erase them and fence late upload callbacks; ordinary cache eviction does not.
+Picker bytes and uploads whose URL has not yet returned remain outside this recovery guarantee.
+
 The managed cache target is 256 MiB: media 192 MiB, forum projections 32 MiB, chat 16 MiB,
 campus documents up to 4 MiB and 12 MiB of accounting headroom. These are cache limits, not the
 application's installed size or total process memory. Category rows estimate payload sizes; the total
