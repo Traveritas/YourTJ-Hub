@@ -6,7 +6,7 @@
 >
 > Owner: Platform maintainers
 >
-> Last verified: 2026-09-29
+> Last verified: 2026-09-30
 
 The Flutter app combines the forum, course catalog, scheduler and Wiki. Ordinary browsing and
 writing use native pages. Management uses the same first-party workspaces and permission checks as
@@ -646,7 +646,8 @@ identity survive this layout change. The header keeps a small outer margin for i
   greeting, today's courses and then recent notices. Weekly timetable, academic records and charts,
   calendars, notice bodies and identity management use the existing campus API. Today’s timetable
   uses the server-resolved Shanghai teaching date, including holidays,
-  makeup source weeks and explanatory notices; it refreshes across school-local midnight.
+  makeup source weeks and explanatory notices; the first Campus entry after school-local midnight
+  automatically refreshes a previous-day snapshot.
   The export-only adjustment switch does not disable this display. GPA is loaded only
   on the academic tab. The timetable shares the planner renderer without its editing or storage.
   The Campus bottom destination opens this page directly. Course reviews, the scheduler and Wiki
@@ -678,9 +679,14 @@ identity survive this layout change. The header keeps a small outer margin for i
   account and binding revision. Grades, exams, campus messages/bodies and credentials are excluded.
   The private campus workspace places a compact refresh icon to the right of the snapshot time,
   preserving a 44-pixel touch target; stale/offline notices remain below the same-row metadata.
-  Repeated refreshes coalesce; restored snapshot tabs do not refetch the four persisted datasets when
-  the foreground cache expires. Ordinary block failures keep usable same-day content visible; invalid
-  teaching rules suppress old course results. Missing or expired-day data requests an explicit refresh.
+  Automatic and manual refreshes coalesce. On entry, a snapshot from an earlier Shanghai date triggers
+  a complete four-dataset refresh after binding verification, alongside the selected section's reads.
+  A successful snapshot's commit date prevents repeated daily refreshes, including after app restart;
+  failures retain the previous snapshot and can retry on a later entry or manual refresh. Same-day
+  restored snapshot tabs do not refetch the four persisted datasets when the foreground cache expires.
+  Ordinary block failures keep usable same-day content visible; invalid teaching rules suppress old
+  course results. Missing data retains an explicit refresh action. The existing fresh-read flow after
+  backgrounding remains independent of daily snapshot reuse.
   Settings can clear only campus memory, device snapshots and desktop data, preserve drafts/plans and
   school binding, report partial failure and retry. Pending refreshes cannot refill a cleared cache.
   Snapshot storage is bounded to 1 MiB per document and four scopes; reads discard data older than 30 days.
