@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:ui_kit/ui_kit.dart';
 
 import '../../l10n/app_localizations.dart';
+import '../app_config.dart';
 import '../link_navigation.dart';
 import '../providers.dart';
 import '../server_messages.dart';
@@ -46,7 +47,13 @@ class ChatMessageBubble extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final image = msgType == 2 && isChatImageUrl(text);
+    final image =
+        msgType == 2 &&
+        isChatImageUrl(
+          text,
+          baseUrl: ref.watch(apiClientProvider).baseUrl,
+          assetOrigins: AppConfig.chatImageOrigins.split(','),
+        );
     final quote = content == null && !image ? parseChatReplyQuote(text) : null;
     return ResolvedStickerContent(
       content: text,
@@ -173,10 +180,14 @@ class _ChatReplyQuoteBlock extends StatelessWidget {
         : colors.baseContent;
     final fill = mine ? colors.messageOutgoingContent : colors.baseContent;
     final label = AppLocalizations.of(context).messagesJumpToQuotedMessage;
+    final excerpt = localizedChatReplyExcerpt(
+      quote.excerpt,
+      imageLabel: AppLocalizations.of(context).messagesImage,
+    );
     return Semantics(
       button: onTap != null,
       enabled: onTap != null ? true : null,
-      label: onTap == null ? null : '$label: ${quote.sender} ${quote.excerpt}',
+      label: onTap == null ? null : '$label: ${quote.sender} $excerpt',
       child: GestureDetector(
         behavior: HitTestBehavior.opaque,
         onTap: onTap,
@@ -219,7 +230,7 @@ class _ChatReplyQuoteBlock extends StatelessWidget {
                           ),
                         if (quote.excerpt.isNotEmpty)
                           Text(
-                            quote.excerpt,
+                            excerpt,
                             maxLines: 2,
                             overflow: TextOverflow.ellipsis,
                             style: TextStyle(color: foreground, fontSize: 13),

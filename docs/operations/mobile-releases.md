@@ -419,6 +419,10 @@ used to encrypt existing grants; rotating it without re-encryption prevents revo
 
 A new server containing block enforcement, private-message reporting and optional
 `clientMessageId` support must be deployed before releasing the matching mobile binary.
+`Current`: automatic chat image loading trusts the configured API origin. Deployments returning
+image URLs on a separate CDN must also supply `--dart-define=YOURTJ_CHAT_IMAGE_ORIGINS=https://cdn.example.com`
+(comma-separated exact origins, including scheme and port; no paths or wildcards). Redirects must
+remain within these origins. Unlisted image URLs display as links instead of loading automatically.
 Signed APK upgrade, external-browser OAuth return, APNs/JPush/OEM delivery and Widget behavior
 require recorded physical-device evidence for the actual candidate version/build.
 

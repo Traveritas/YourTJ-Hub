@@ -1429,7 +1429,9 @@ class _ConversationPageState extends ConsumerState<_ConversationPage>
           ListTile(
             leading: const GfSymbol('image'),
             title: Text(l10n.publishToolImage),
-            enabled: _historyReady,
+            enabled:
+                _historyReady &&
+                !ref.read(chatOutboxProvider(widget.conv.peerId)).sending,
             onTap: () => Navigator.pop(context, 'image'),
           ),
           ListTile(
@@ -1451,9 +1453,18 @@ class _ConversationPageState extends ConsumerState<_ConversationPage>
   }
 
   Future<void> _attachImage() async {
-    if (!_sessionCurrent || !_historyReady || _attachingImage) return;
+    if (!_sessionCurrent ||
+        !_historyReady ||
+        _attachingImage ||
+        ref.read(chatOutboxProvider(widget.conv.peerId)).sending) {
+      return;
+    }
     final picker = ref.read(imagePickerProvider);
     final files = ref.read(fileRepositoryProvider);
+    final outbox = ref.read(chatOutboxProvider(widget.conv.peerId));
+    final imageKey = newChatMessageId();
+    String? uploadedUrl;
+    PendingMessage? pending;
     setState(() => _attachingImage = true);
     try {
       final file = await picker.pickImage(
@@ -1471,15 +1482,24 @@ class _ConversationPageState extends ConsumerState<_ConversationPage>
         builder: (_) => ChatImagePreview(
           bytes: bytes,
           ownerEpoch: _sessionEpoch,
-          upload: () => files.uploadImage(bytes: bytes, filename: file.name),
+          upload: () async {
+            await outbox.prepareImageUpload();
+            uploadedUrl ??= await files.uploadImage(
+              bytes: bytes,
+              filename: file.name,
+            );
+            pending = await outbox.enqueueImage(
+              uploadedUrl!,
+              _latestId,
+              clientMessageId: imageKey,
+            );
+            return uploadedUrl!;
+          },
         ),
       );
       if (!_sessionCurrent || !_historyReady || url == null) return;
-      final message = ref
-          .read(chatOutboxProvider(widget.conv.peerId))
-          .enqueue(url, _latestId, msgType: 2);
       _scrollToBottom();
-      await _sendPending(message);
+      await _sendPending(pending!, fromImageUpload: true);
     } catch (error) {
       if (mounted && _sessionCurrent) {
         showGfToast(
@@ -1494,12 +1514,11 @@ class _ConversationPageState extends ConsumerState<_ConversationPage>
   }
 
   Future<void> _send(String value) async {
-    if (!_historyReady) return;
+    if (!_historyReady || _attachingImage) return;
     final text = value.trim();
     if (text.isEmpty) return;
     final outbox = ref.read(chatOutboxProvider(widget.conv.peerId));
-    if (!_drafts.current ||
-        outbox.items.any((item) => item.state == DeliveryState.sending)) {
+    if (!_drafts.current || outbox.sending) {
       return;
     }
     _draftChanged();
@@ -1651,7 +1670,7 @@ class _ConversationPageState extends ConsumerState<_ConversationPage>
         content: isForwardedHistory
             ? '[${AppLocalizations.of(context).messageForwardHistory}]'
             : message.msgType == 2
-            ? '[${AppLocalizations.of(context).messagesImage}]'
+            ? chatImageReplyMarker
             : message.content,
       );
     });
@@ -1699,8 +1718,11 @@ class _ConversationPageState extends ConsumerState<_ConversationPage>
   Future<void> _sendPending(
     PendingMessage message, {
     ChatReplyTarget? reply,
+    bool fromImageUpload = false,
   }) async {
-    if (!_historyReady) return;
+    if (!_historyReady || (_attachingImage && !fromImageUpload)) return;
+    final outbox = ref.read(chatOutboxProvider(widget.conv.peerId));
+    if (outbox.sending) return;
     final epoch = ref.read(offlineCacheEpochProvider);
     final peerId = widget.conv.peerId;
     final drafts = _drafts;
@@ -1708,9 +1730,7 @@ class _ConversationPageState extends ConsumerState<_ConversationPage>
     final selectedReply = _replyTarget;
     var restoredDraft = false;
     var acknowledgedDraft = false;
-    final convId = await ref
-        .read(chatOutboxProvider(widget.conv.peerId))
-        .send(message);
+    final convId = await outbox.send(message);
     if (convId != null) {
       acknowledgedDraft =
           message.draftRevision != null &&
@@ -2323,6 +2343,14 @@ class _ConversationPageState extends ConsumerState<_ConversationPage>
                       drafts: _drafts,
                       peerId: widget.conv.peerId,
                     ),
+                    if (outbox.imageRecoveryError != null)
+                      ListTile(
+                        title: Text(l10n.commonLoadFailed),
+                        trailing: TextButton(
+                          onPressed: outbox.restoreImages,
+                          child: Text(l10n.commonRetry),
+                        ),
+                      ),
                     if (_replyTarget != null)
                       _ReplyPreview(
                         target: _replyTarget!,
@@ -2348,10 +2376,7 @@ class _ConversationPageState extends ConsumerState<_ConversationPage>
                       emojiLabel: l10n.messagesEmoji,
                       keyboardLabel: l10n.messagesKeyboard,
                       canSend:
-                          _historyReady &&
-                          !outbox.items.any(
-                            (item) => item.state == DeliveryState.sending,
-                          ),
+                          _historyReady && !_attachingImage && !outbox.sending,
                       onSend: _send,
                     ),
                   ],
@@ -2535,7 +2560,10 @@ class _ReplyPreview extends StatelessWidget {
                       ),
                     ),
                   Text(
-                    target.excerpt,
+                    localizedChatReplyExcerpt(
+                      target.excerpt,
+                      imageLabel: AppLocalizations.of(context).messagesImage,
+                    ),
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
                     style: TextStyle(

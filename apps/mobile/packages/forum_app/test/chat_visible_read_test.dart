@@ -105,6 +105,7 @@ pumpChat(
   StickerCollection? stickerCollection,
   List<Override> overrides = const <Override>[],
   Brightness brightness = Brightness.light,
+  Locale locale = const Locale('en'),
   int? targetUserId = 2,
   VisibleChatRepository Function(GfApiClient client)? repository,
 }) async {
@@ -160,7 +161,7 @@ pumpChat(
         navigatorKey: navigator,
         navigatorObservers: [VisibilityRouteObserver()],
         theme: gfThemeData(brightness),
-        locale: const Locale('en'),
+        locale: locale,
         localizationsDelegates: AppLocalizations.localizationsDelegates,
         supportedLocales: AppLocalizations.supportedLocales,
         home: nested

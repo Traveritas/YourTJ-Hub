@@ -127,11 +127,15 @@ void main() {
       final repo = _Chat();
       final outbox = ChatOutbox(repo, 2);
       final a = outbox.enqueue('same', 10), b = outbox.enqueue('same', 10);
-      final sends = [outbox.send(a), outbox.send(b)];
-      for (final attempt in repo.attempts) {
-        attempt.complete(9);
-      }
-      await Future.wait(sends);
+      final first = outbox.send(a);
+      expect(await outbox.send(b), isNull);
+      expect(repo.attempts, hasLength(1));
+      expect(b.state, DeliveryState.failed);
+      repo.attempts.single.complete(9);
+      await first;
+      final second = outbox.send(b);
+      repo.attempts.last.complete(9);
+      await second;
       outbox.reconcile([message(11)]);
       expect(outbox.items, [b]);
       outbox.reconcile([message(11), message(12)]);
