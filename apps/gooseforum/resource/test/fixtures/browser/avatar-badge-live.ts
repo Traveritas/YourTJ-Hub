@@ -25,8 +25,8 @@ const SITES = [
 function payload(code: string, color: string, level: string): UserBadgePayload {
   return {
     code, type: 'system', grantMode: 'auto', name: code, description: '',
-    // Vite 以 resource/ 为根服务 /assets/static/...，与线上 /static/badges 是同一批文件
-    iconType: 'asset', iconKey: '', iconUrl: `/assets/static/badges/${code.replace(/_/g, '-')}.svg`, color, level,
+    // 与线上接口返回的地址一致；测试用 Playwright 路由把 /static/badges/ 映射到 static/badges/
+    iconType: 'asset', iconKey: '', iconUrl: `/static/badges/${code.replace(/_/g, '-')}.svg?v=2`, color, level,
     isEnabled: true, isWearable: false, sortOrder: 0,
     source: 'auto', reason: '', grantedAt: '2026-09-01T00:00:00Z',
   }

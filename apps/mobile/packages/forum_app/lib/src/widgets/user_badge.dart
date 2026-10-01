@@ -93,13 +93,23 @@ class UserWornBadge extends StatelessWidget {
   }
 }
 
+// Built-in badge SVGs carry their own optical margin (docs/decisions/0054) and
+// fill the medallion's centre box; custom artwork, often an edge-to-edge logo,
+// keeps the original 60% box.
+double _medallionArtworkSize(UserBadgePayload badge, double medallion) {
+  final path = Uri.tryParse(badge.iconUrl)?.path ?? '';
+  return path.startsWith('/static/badges/')
+      ? GfBadgeMedallion.artworkSize(medallion)
+      : medallion * .60;
+}
+
 /// The parent control supplies the accessible name and the detail interaction.
 class UserBadgeArtwork extends StatelessWidget {
   const UserBadgeArtwork(this.badge, {super.key, this.size = 32});
 
-  /// Artwork that fills the centre box of a [GfBadgeMedallion] of [medallion].
+  /// Artwork sized for a [GfBadgeMedallion] of [medallion].
   UserBadgeArtwork.medallion(this.badge, double medallion, {super.key})
-    : size = GfBadgeMedallion.artworkSize(medallion);
+    : size = _medallionArtworkSize(badge, medallion);
 
   final UserBadgePayload badge;
   final double size;

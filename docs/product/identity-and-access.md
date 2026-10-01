@@ -411,8 +411,10 @@ remains available separately.
 Avatar badge chips use each badge's preset background in light and dark themes.
 System badge artwork is normalized to one optical size, and the icon area is a fixed
 share of the chip, so every system icon keeps the same even margin inside the circular
-chip at every avatar size instead of reaching its rim; custom badges keep whatever
-framing their own artwork has. Badge responses append an artwork version
+chip at every avatar size instead of reaching its rim. Custom badges (any icon URL
+outside `/static/badges/`) keep their original framing: a 2px inset in the web chip
+and a 60% artwork box in the mobile medallion, since their artwork often fills its
+canvas edge to edge. Badge responses append an artwork version
 (`?v=<n>`) to built-in `/static/badges/` icon URLs, so redrawn artwork reaches
 users despite the long `/static` browser cache.
 

@@ -30,6 +30,11 @@ before(async () => {
   origin = `http://127.0.0.1:${server.httpServer.address().port}`
   browser = await chromium.launch()
   page = await browser.newPage({ viewport: { width: 1280, height: 900 } })
+  // 线上 /static/badges/ 由 Go 二进制提供；裸 Vite 只服务 /assets/，这里直接从磁盘回应
+  await page.route((url) => url.pathname.startsWith('/static/badges/'), (route) => {
+    const name = new URL(route.request().url()).pathname.slice('/static/badges/'.length)
+    return route.fulfill({ path: fileURLToPath(new URL(`../static/badges/${name}`, import.meta.url)), contentType: 'image/svg+xml' })
+  })
 })
 
 after(async () => {
