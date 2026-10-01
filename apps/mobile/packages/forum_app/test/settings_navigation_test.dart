@@ -682,11 +682,18 @@ void main() {
     expect(find.text('100%'), findsOneWidget);
     expect(harness.container.read(contentFontScaleProvider), 1);
 
+    final resetButton = find.byKey(
+      const ValueKey('settings-reading-scale-reset'),
+    );
+    // At the 100% default there is nothing to reset.
+    expect(tester.widget<TextButton>(resetButton).onPressed, isNull);
+
     await tester.drag(slider, const Offset(400, 0));
     await tester.pumpAndSettle();
 
     expect(harness.container.read(contentFontScaleProvider), 1.4);
     expect(find.text('140%'), findsOneWidget);
+    expect(tester.widget<TextButton>(resetButton).onPressed, isNotNull);
     expect(
       (await SharedPreferences.getInstance()).getDouble(
         ContentFontScaleNotifier.prefsKey,
@@ -694,12 +701,11 @@ void main() {
       1.4,
     );
 
-    await tester.tap(
-      find.byKey(const ValueKey('settings-reading-scale-reset')),
-    );
+    await tester.tap(resetButton);
     await tester.pumpAndSettle();
     expect(harness.container.read(contentFontScaleProvider), 1);
     expect(find.text('100%'), findsOneWidget);
+    expect(tester.widget<TextButton>(resetButton).onPressed, isNull);
     expect(
       (await SharedPreferences.getInstance()).getDouble(
         ContentFontScaleNotifier.prefsKey,

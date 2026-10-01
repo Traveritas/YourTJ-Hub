@@ -240,7 +240,7 @@ final RegExp _htmlWhitespace = RegExp(r'[ \t\r\n]+');
 /// derive from the same `contentHtml` the full reader shows instead of leaking
 /// raw Markdown markers like `## 课程内容`.
 ///
-/// ponytail: strip-tags only — block structure, image alt text and code blocks
+/// XXX: strip-tags only — block structure, image alt text and code blocks
 /// collapse into one line, and only the common entities are decoded. Swap in a
 /// DOM walk if a preview ever needs more than readable prose.
 String gfPlainTextFromHtml(String html) => html

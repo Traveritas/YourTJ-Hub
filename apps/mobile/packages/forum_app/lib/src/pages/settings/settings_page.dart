@@ -1265,9 +1265,15 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                   max: GfRichContentTypography.maxUserScale,
                   divisions: 12,
                   label: '${(readingScale * 100).round()}%',
+                  // 拖动只更新会话内状态(notifier 内部防抖),松手立即落盘;
+                  // 若页面在拖动中途被销毁,onChangeEnd 不会触发,由防抖计时器
+                  // 兜底写入。
                   onChanged: (double value) => ref
                       .read(contentFontScaleProvider.notifier)
                       .setScale(value),
+                  onChangeEnd: (double _) => ref
+                      .read(contentFontScaleProvider.notifier)
+                      .persistScale(),
                 ),
                 // Wrap so the description and the reset action reflow onto
                 // separate lines under large system text instead of squeezing.

@@ -53,6 +53,15 @@ void main() {
     expect(GfRichContentTypography.clampUserScale(2), 1.4);
   });
 
+  test('list indent shrinks with the system text scale, clamped to 16-32', () {
+    expect(GfRichContentTypography.listIndentFor(1), 32);
+    expect(GfRichContentTypography.listIndentFor(1.3), closeTo(32 / 1.3, .001));
+    expect(GfRichContentTypography.listIndentFor(2), 16);
+    // Beyond the 1x-2x window the indent stops moving in both directions.
+    expect(GfRichContentTypography.listIndentFor(3), 16);
+    expect(GfRichContentTypography.listIndentFor(.5), 32);
+  });
+
   test('compact profile shares the same ratios at a smaller baseline', () {
     final reading = GfRichContentTypography.standard(
       typography: GfTypography.standard(GfColors.light.baseContent),
