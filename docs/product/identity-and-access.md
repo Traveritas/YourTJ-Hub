@@ -409,6 +409,10 @@ selection. Web settings show each badge once with its enabled checkbox; selected
 badges can be dragged to change their order. The complete earned-badge collection
 remains available separately.
 Avatar badge chips use each badge's preset background in light and dark themes.
+System badge artwork is normalized to one optical size, and the icon area is a fixed
+share of the chip, so every system icon keeps the same even margin inside the circular
+chip at every avatar size instead of reaching its rim; custom badges keep whatever
+framing their own artwork has.
 
 
 ### Native Apple sign-in

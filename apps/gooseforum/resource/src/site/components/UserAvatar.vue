@@ -53,10 +53,11 @@ function formatAvatarUrl(src: string, url: URL): string {
   <span v-if="badge" v-bind="$attrs" class="group/avatar relative inline-block shrink-0">
     <img :src="resolvedSrc" :alt="alt" width="96" height="96" decoding="async" class="h-full w-full object-cover" :class="imgClass">
     <span
-      :class="['absolute -bottom-1.5 -right-1.5 z-10 flex h-[30%] min-h-3.5 w-[30%] min-w-3.5 items-center justify-center rounded-full p-[2px] shadow-md shadow-black/10 ring-2 transition-transform duration-150 ease-out hover:scale-110', badgeClass(badge.color, badge.level)]"
+      :class="['absolute -bottom-1.5 -right-1.5 z-10 flex h-[30%] min-h-3.5 w-[30%] min-w-3.5 items-center justify-center rounded-full shadow-md shadow-black/10 ring-2 transition-transform duration-150 ease-out hover:scale-110', badgeClass(badge.color, badge.level)]"
       :title="badgeTooltip(badge)"
     >
-      <img :src="badgeIconURL(badge)" :alt="badge.name" class="h-full w-full object-contain" />
+      <!-- 图标区按角标比例缩放（不用固定像素内边距），各头像尺寸下图标占角标的比例一致 -->
+      <img :src="badgeIconURL(badge)" :alt="badge.name" class="h-[88%] w-[88%] object-contain" />
     </span>
   </span>
   <img v-else v-bind="$attrs" :src="resolvedSrc" :alt="alt" width="96" height="96" decoding="async">

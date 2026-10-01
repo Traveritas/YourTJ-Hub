@@ -27,6 +27,10 @@ const (
 	LevelSpecial = "special"
 )
 
+// systemDefinitions 返回内置徽章集合。系统徽章 SVG 已按统一光学尺寸归一化
+// （墨迹半径 10/24，缩放时描边按 1/scale 补偿以保持屏幕粗细不变）；新增
+// 系统徽章须沿用同一尺寸。约定与被否决方案见
+// docs/decisions/0054-badge-artwork-optical-size.md。
 func systemDefinitions() []Badge {
 	return []Badge{
 		{Code: CodeFirstPost, Type: badges.TypeSystem, GrantMode: badges.GrantModeAuto, Name: "初次发帖", Description: "发布了第一篇主题", IconType: badges.IconTypeAsset, IconURL: "/static/badges/first-post.svg", Color: "blue", Level: LevelBronze, IsEnabled: true, IsWearable: false, SortOrder: 10},
