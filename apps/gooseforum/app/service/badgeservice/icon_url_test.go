@@ -13,6 +13,10 @@ func TestVersionedBadgeIconURL(t *testing.T) {
 		// 管理端编辑系统徽章时会把带旧版本号的 URL 回存进覆盖记录
 		{input: "/static/badges/robot.svg?v=1", want: want},
 		{input: want, want: want},
+		// 已有其它查询参数时只替换 v，fragment 保留
+		{input: "/static/badges/robot.svg?foo=1", want: "/static/badges/robot.svg?foo=1&v=" + badgeAssetVersion},
+		{input: "/static/badges/robot.svg?v=1&foo=1", want: "/static/badges/robot.svg?foo=1&v=" + badgeAssetVersion},
+		{input: "/static/badges/robot.svg#detail", want: "/static/badges/robot.svg?v=" + badgeAssetVersion + "#detail"},
 		{input: "", want: ""},
 		{input: "/file/img/2026/10/custom.png", want: "/file/img/2026/10/custom.png"},
 		{input: "https://cdn.example.com/static/badges/a.svg", want: "https://cdn.example.com/static/badges/a.svg"},

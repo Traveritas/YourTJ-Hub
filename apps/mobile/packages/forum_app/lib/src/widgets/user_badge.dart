@@ -95,10 +95,15 @@ class UserWornBadge extends StatelessWidget {
 
 // Built-in badge SVGs carry their own optical margin (docs/decisions/0054) and
 // fill the medallion's centre box; custom artwork, often an edge-to-edge logo,
-// keeps the original 60% box.
+// keeps the original 60% box. The rule mirrors the web isSystemBadgeArtwork:
+// only relative /static/badges/ URLs count (an absolute URL on any host is
+// custom artwork), and an empty URL falls back to the built-in contributor
+// artwork, same as web badgeIconURL.
 double _medallionArtworkSize(UserBadgePayload badge, double medallion) {
-  final path = Uri.tryParse(badge.iconUrl)?.path ?? '';
-  return path.startsWith('/static/badges/')
+  final url = badge.iconUrl.isEmpty
+      ? '/static/badges/contributor.svg'
+      : badge.iconUrl;
+  return url.startsWith('/static/badges/')
       ? GfBadgeMedallion.artworkSize(medallion)
       : medallion * .60;
 }
