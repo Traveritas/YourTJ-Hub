@@ -20,7 +20,8 @@ Class: feature
 - 所有系统徽章统一到一个光学尺寸，对齐本就没有被反馈过的基准徽章（受到认可 / 贡献者 / 赞助者）。
 - 屏幕上的描边粗细与改前一致：缩小图形不得让线条变细、变淡。
 - 不变量可机器守卫，而不是靠目测。
-- 不改图标 URL、Go 代码、接口契约与 i18n；Web 与移动端继续共用同一批 SVG 资产。
+- 已上线用户必须真的看到新图形：`/static/*` 的长公共缓存不能把旧图形留在浏览器里。
+- 不改接口结构与 i18n；Web 与移动端继续共用同一批 SVG 资产。
 
 ## Considered Options
 
@@ -47,23 +48,24 @@ Class: feature
 - **只归一化图形**：改动最小，但小头像因固定内边距会被额外缩小，h-6 场景掉到 59%，观感退化，
   因此两半改动必须同时落地。
 - **目标取 80%**：在 h-6 上更接近改前观感，但实测量到 79.9%，正好贴着守卫阈值，余量不足；且
-  基准徽章原本就在 73%，选 73% 才能与「观感正常」的参照对齐。80% 变体保留在对比页里，若不满意
-  可一行改系数并同步放宽阈值。
+  基准徽章原本就在 73%，选 73% 才能与「观感正常」的参照对齐。若不满意，可改缩放系数并同步放宽阈值。
 - **百分比内边距**：CSS 百分比 padding 相对父容器宽度（这里是头像而非角标）解析，个人主页上会
   变成约 6.5px；且移动端容器独立于 Web，改不到。百分比图标尺寸没有这两个问题。
 - **采用的方案**：代价是描边不随图形缩短，缩小的图形会显得略密一些（内部空隙按比例变窄），
-  与基准徽章密度一致；移动端共用同一批 SVG，角标占圆环内沿的 83%，而徽章牌（medallion）中心盒
-  0.6 + 2px 内边距使图形只占牌面直径的 37.5%～41.7%，若真机觉得偏空，属移动端容器参数问题，
-  另行调整，不回退本次归一化。
-- **已知部署边界**：图标 URL 不变，而 `/static/*` 在 production 带 210 天公共缓存且不携带
-  ETag/Last-Modified，老用户需缓存过期或硬刷新后才看到新图形；如需更快生效，应另开改动为徽章
-  URL 加版本参数。
+  与基准徽章密度一致；移动端共用同一批 SVG，角标占圆环内沿的 83%。移动端特有的徽章牌
+  （`GfBadgeMedallion`）原来的中心盒只有牌面的 60%，归一化后图形只剩牌面直径的 37%～42%，
+  显得空；因此中心盒放大到 70%（`GfBadgeMedallion.artworkSize`），徽章图形改用
+  `UserBadgeArtwork.medallion` 填满中心盒，四种牌面尺寸（80/56/40/34）下墨迹直径统一为牌面的
+  48%～54%（原先 37%～63% 参差不齐）。图形自带边距，放大中心盒不会碰到牌面边缘。
+- **缓存失效**：`/static/*` 在 production 带约 210 天公共缓存且不做重验证，图形改了而 URL
+  不变，老用户会一直看到旧图形。因此 `badgeservice` 输出徽章时给 `/static/badges/` 下的 URL
+  附加 `?v=<badgeAssetVersion>`（覆盖记录里回存的旧版本号会被替换），Web、移动端与新发出的
+  徽章通知都走这条路径；以后改动这批 SVG 时递增 `badgeAssetVersion`。
 
 ## Links
 
 - [Issue #993](https://github.com/YourTongji/YourTJ-Hub/issues/993)
 - [守住尺寸的浏览器测试](../../apps/gooseforum/resource/test/badge-icon-optical-size.browser.mjs)
-- [改前/改后对比页](../../apps/gooseforum/resource/test/fixtures/browser/avatar-badge-live.html)
-- [改前图形副本](../../apps/gooseforum/resource/test/fixtures/browser/badge-before/README.md)
+- [测试用的头像渲染页](../../apps/gooseforum/resource/test/fixtures/browser/avatar-badge-live.html)
 - [徽章与个人资料产品文档](../product/identity-and-access.md)
 - [静态资产缓存与反向代理注意事项](../operations/deployment.md)

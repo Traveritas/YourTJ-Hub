@@ -96,6 +96,11 @@ class UserWornBadge extends StatelessWidget {
 /// The parent control supplies the accessible name and the detail interaction.
 class UserBadgeArtwork extends StatelessWidget {
   const UserBadgeArtwork(this.badge, {super.key, this.size = 32});
+
+  /// Artwork that fills the centre box of a [GfBadgeMedallion] of [medallion].
+  UserBadgeArtwork.medallion(this.badge, double medallion, {super.key})
+    : size = GfBadgeMedallion.artworkSize(medallion);
+
   final UserBadgePayload badge;
   final double size;
 
@@ -124,7 +129,7 @@ Future<void> showUserBadgeDetails(
     title: badge.name,
     description: badge.description,
     color: userBadgeColor(badge),
-    icon: UserBadgeArtwork(badge, size: 40),
+    icon: UserBadgeArtwork.medallion(badge, 80),
     note: badge.reason.trim(),
     earned: date == null
         ? null

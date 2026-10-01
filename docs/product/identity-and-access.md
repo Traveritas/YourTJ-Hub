@@ -412,7 +412,9 @@ Avatar badge chips use each badge's preset background in light and dark themes.
 System badge artwork is normalized to one optical size, and the icon area is a fixed
 share of the chip, so every system icon keeps the same even margin inside the circular
 chip at every avatar size instead of reaching its rim; custom badges keep whatever
-framing their own artwork has.
+framing their own artwork has. Badge responses append an artwork version
+(`?v=<n>`) to built-in `/static/badges/` icon URLs, so redrawn artwork reaches
+users despite the long `/static` browser cache.
 
 
 ### Native Apple sign-in
