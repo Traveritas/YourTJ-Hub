@@ -258,6 +258,9 @@ class AppLocalizationsJa extends AppLocalizations {
   String get authOidcLogin => 'YourTJでログイン';
 
   @override
+  String get authRegisterEmailVerify => '登録が完了しました。確認メールを送信しました。受信箱を確認してください。';
+
+  @override
   String get authRegisterSuccess => '登録しました。ログインしてください';
 
   @override
@@ -2254,7 +2257,8 @@ class AppLocalizationsJa extends AppLocalizations {
   String get settingsAvatarSources => 'プリセットを選択、または写真をアップロード';
 
   @override
-  String get settingsEmailChangeStaged => 'メールアドレスの変更リクエストを送信しました。';
+  String get settingsEmailChangeStaged =>
+      '新しいメールアドレスに有効化メールを送りました。メールを確認してください。';
 
   @override
   String settingsEmailPending(String email) {

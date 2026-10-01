@@ -564,6 +564,12 @@ abstract class AppLocalizations {
   /// **'Sign in with yourtj'**
   String get authOidcLogin;
 
+  /// No description provided for @authRegisterEmailVerify.
+  ///
+  /// In en, this message translates to:
+  /// **'Registration successful. A verification email was sent; check your inbox.'**
+  String get authRegisterEmailVerify;
+
   /// No description provided for @authRegisterSuccess.
   ///
   /// In en, this message translates to:
@@ -4299,7 +4305,7 @@ abstract class AppLocalizations {
   /// No description provided for @settingsEmailChangeStaged.
   ///
   /// In en, this message translates to:
-  /// **'Email change request submitted.'**
+  /// **'An activation email was sent to your new address. Check your inbox to activate it.'**
   String get settingsEmailChangeStaged;
 
   /// No description provided for @settingsEmailPending.

@@ -256,6 +256,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get authOidcLogin => '使用 yourtj 统一登录';
 
   @override
+  String get authRegisterEmailVerify => '注册成功，验证邮件已发送，请前往邮箱完成验证。';
+
+  @override
   String get authRegisterSuccess => '注册成功,请登录';
 
   @override
@@ -2240,7 +2243,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settingsAvatarSources => '选择预设头像或上传图片';
 
   @override
-  String get settingsEmailChangeStaged => '邮箱变更请求已提交。';
+  String get settingsEmailChangeStaged => '激活邮件已发送到新邮箱，请查收并完成验证。';
 
   @override
   String settingsEmailPending(String email) {
