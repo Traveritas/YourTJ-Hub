@@ -1304,6 +1304,22 @@ class AppLocalizationsJa extends AppLocalizations {
   String get settingsFollowSiteThemeDesc => 'サイトで設定された配色を使用';
 
   @override
+  String get richContentCopyCode => 'コードをコピー';
+
+  @override
+  String get richContentCodeCopied => 'コードをコピーしました';
+
+  @override
+  String get settingsReadingTextSize => '本文の文字サイズ';
+
+  @override
+  String get settingsReadingTextSizeDesc =>
+      '投稿・Wiki・授業レビューの本文に適用されます。端末の文字サイズ設定も引き続き反映されます。';
+
+  @override
+  String get settingsReadingTextSizeReset => '100% に戻す';
+
+  @override
   String get entryCourses => 'コース';
 
   @override

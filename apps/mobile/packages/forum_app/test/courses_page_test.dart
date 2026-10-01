@@ -189,7 +189,7 @@ class FakeCourseRepository extends CourseRepository {
       offeringId: input.offeringId,
       rating: input.rating,
       content: input.content,
-      contentHtml: '',
+      contentHtml: '<p>${input.content}</p>',
       author: const ReviewAuthorPayload(kind: 'anonymous', label: '匿名同学'),
       viewer: const ReviewViewerPayload(
         canEdit: false,
@@ -345,6 +345,10 @@ CourseRelatedResult _relatedPayload() {
   );
 }
 
+/// Review bodies are rendered from server HTML, so assertions look at rich
+/// text instead of a plain [Text] widget.
+Finder _reviewHtml(String text) => find.textContaining(text, findRichText: true);
+
 List<ReviewPayload> _reviewPayloads() {
   return <ReviewPayload>[
     const ReviewPayload(
@@ -352,7 +356,7 @@ List<ReviewPayload> _reviewPayloads() {
       offeringId: 901,
       rating: 5,
       content: '好课',
-      contentHtml: '',
+      contentHtml: '<p>好课</p>',
       author: ReviewAuthorPayload(kind: 'member', label: 'bob'),
       viewer: ReviewViewerPayload(
         canEdit: false,
@@ -368,7 +372,7 @@ List<ReviewPayload> _reviewPayloads() {
       offeringId: 901,
       rating: null,
       content: '历史评价',
-      contentHtml: '',
+      contentHtml: '<p>历史评价</p>',
       author: ReviewAuthorPayload(kind: 'legacy', label: '历史匿名评价'),
       viewer: ReviewViewerPayload(
         canEdit: false,
@@ -384,7 +388,7 @@ List<ReviewPayload> _reviewPayloads() {
       offeringId: 902,
       rating: 4,
       content: '很不错',
-      contentHtml: '',
+      contentHtml: '<p>很不错</p>',
       author: ReviewAuthorPayload(kind: 'member', label: 'alice'),
       viewer: ReviewViewerPayload(
         canEdit: true,
@@ -859,7 +863,7 @@ void main() {
         size: const Size(390, 844),
       );
       expect(course.reviewCalls.first.offeringId, 902);
-      expect(find.text('很不错').hitTestable(), findsOneWidget);
+      expect(_reviewHtml('很不错').hitTestable(), findsOneWidget);
       expect(tester.takeException(), isNull);
     });
 
@@ -884,7 +888,7 @@ void main() {
           size: const Size(320, 480),
         );
         expect(course.reviewCalls.first.offeringId, 902);
-        expect(find.text('历史评价').hitTestable(), findsOneWidget);
+        expect(_reviewHtml('历史评价').hitTestable(), findsOneWidget);
         expect(tester.takeException(), isNull);
       },
     );
@@ -901,13 +905,13 @@ void main() {
       );
       await pumpDetail(tester, course);
       await tester.scrollUntilVisible(
-        find.text('很不错'),
+        _reviewHtml('很不错'),
         180,
         scrollable: find.byType(Scrollable).first,
       );
       expect(
-        tester.getTopLeft(find.text('很不错')).dy,
-        lessThan(tester.getTopLeft(find.text('好课')).dy),
+        tester.getTopLeft(_reviewHtml('很不错')).dy,
+        lessThan(tester.getTopLeft(_reviewHtml('好课')).dy),
       );
     });
 
@@ -1025,7 +1029,7 @@ void main() {
       expect(course.createInputs.single.rating, 5);
       expect(course.createInputs.single.isAnonymous, isTrue);
       expect(course.createInputs.single.content, '老师讲得清楚');
-      expect(find.text('老师讲得清楚'), findsOneWidget);
+      expect(_reviewHtml('老师讲得清楚'), findsOneWidget);
 
       await tester.pump(const Duration(seconds: 5));
     });

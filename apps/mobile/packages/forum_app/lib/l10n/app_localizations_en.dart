@@ -1319,6 +1319,22 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settingsFollowSiteThemeDesc => 'Use server-issued site colors';
 
   @override
+  String get richContentCopyCode => 'Copy code';
+
+  @override
+  String get richContentCodeCopied => 'Code copied';
+
+  @override
+  String get settingsReadingTextSize => 'Reading text size';
+
+  @override
+  String get settingsReadingTextSizeDesc =>
+      'Applies to posts, Wiki and course reviews. System font scaling still applies.';
+
+  @override
+  String get settingsReadingTextSizeReset => 'Reset to 100%';
+
+  @override
   String get entryCourses => 'Courses';
 
   @override
